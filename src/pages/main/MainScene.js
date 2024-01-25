@@ -289,7 +289,16 @@ export default function MainScene(props) {
                                     </Button>
                                 </div>
                             }
-                            <CloseAlert open={adminOpen} handleOpen={sendVoteStart} handleClose={sendVoteClose} />
+                            <CloseAlert open={adminOpen} handleOpen={sendVoteStart} handleClose={sendVoteClose} 
+                            data={
+                                {
+                                    yesNum: yesNum,
+                                    noNum: noNum,
+                                    notVotedNum: notVotedNum,
+                                    abstrainedNum: abstrainedNum,
+                                }
+                            }
+                            />
                         </div>
                     }
                 </div>
