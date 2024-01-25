@@ -3,7 +3,7 @@ import axios from "axios";
 // axios.defaults.baseURL = "https://skupstina.azurewebsites.net/";
 // axios.defaults.baseURL = "http://45.84.0.116:5005/";
 
-axios.defaults.baseURL = "http://52.158.47.57:8080/";
+axios.defaults.baseURL =  process.env.API_URL || "http://52.158.47.57:8080/";
 
 
 const signInUser = async (props) => {

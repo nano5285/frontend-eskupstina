@@ -198,8 +198,8 @@ export default function MainScene(props) {
                         </div>
                     }
                     <div className={`${isFullScreen ? 'md:basis-2/4' : 'basis-full'} relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`} >
-                        {/* <PdfViewerComponent className="h-full" document={"http://45.84.0.116:5005/api/pdf?agenda=" + selectedIndex} /> */}
-                        <PdfViewer url={"http://45.84.0.116:5005/api/pdf?agenda=" + selectedIndex} />
+                        {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
+                        <PdfViewer url={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} />
                         <div className="absolute bottom-5 right-10">
                             <button onClick={() => {
                                 setIsFullScreen(!isFullScreen)
