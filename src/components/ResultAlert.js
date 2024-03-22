@@ -1,11 +1,5 @@
 import { Button } from "@material-tailwind/react";
-import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogHeader,
-  DialogBody,
-  DialogFooter,
-} from "@material-tailwind/react";
+import { Dialog, DialogBody, DialogFooter } from "@material-tailwind/react";
 
 export default function ResultAlert(props) {
   const { open, handleClose, resultData } = props;
