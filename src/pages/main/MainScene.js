@@ -1,28 +1,24 @@
 import { useEffect, useState } from "react";
-import { useAsyncError, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { socket } from "../../utils/socket";
 import VoteAlert from "../../components/VoteAlert";
 import {
   closeVote,
   getAgenda,
   getUser,
-  getVote,
   handleVote,
   resetVote,
   startVote,
 } from "../../services/axios";
 import { Button } from "@material-tailwind/react";
-import OpenAlert from "../../components/OpenAlert";
 import CloseAlert from "../../components/CloseAlert";
 import CustomButton from "../../components/CustomButton";
 import UserComponent from "../../components/UserComponent";
 import { toast } from "react-toastify";
 import ZoomSvg from "../../assets/Zoom.svg";
-import ResultAlert from "../../components/ResultAlert";
 import PdfViewer from "../../components/CustomPdfViewer";
 
 export default function MainScene(props) {
-  // const { navigation } = props;
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
   const [party, setParty] = useState([]);
@@ -41,13 +37,7 @@ export default function MainScene(props) {
   const [isReset, setIsReset] = useState(false);
   const [updateFlag, setUpdateFlag] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
-  const [resultData, setResultData] = useState({});
   const userName = localStorage.getItem("userName");
-  // useEffect(() => {
-  //     setInterval(function greet() {
-  //         socket.emit("vote_update", "message")
-  //     }, 2000)
-  // }, [])
 
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
@@ -59,8 +49,6 @@ export default function MainScene(props) {
   });
 
   socket.on("vote_close", function (data) {
-    // setResultData(data)
-    // setResultOpen(true);
     setOpen(false);
   });
 
@@ -83,7 +71,6 @@ export default function MainScene(props) {
   };
 
   const sendVoteStart = async () => {
-    // setAdminOpen(true);
     if (checkAgendaState() == 2) {
       toast("Voting already closed!");
       return;
@@ -106,8 +93,6 @@ export default function MainScene(props) {
     });
     await closeVote(startedVote);
     setAdminOpen(false);
-    // setTimeout(async () => {
-    // }, 1000);
   };
 
   const sendVoteReset = async () => {
@@ -122,9 +107,6 @@ export default function MainScene(props) {
   //
   useEffect(() => {
     const getAgendasAndUsers = async () => {
-      const userIdData = {
-        id: state?.userId,
-      };
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
 
@@ -211,16 +193,16 @@ export default function MainScene(props) {
     }
   };
 
-  const handleResultClose = () => {
-    setResultOpen(false);
-  };
-  const getHeight = () => {
-    return (
-      window.innerHeight ||
-      document.documentElement.clientHeight ||
-      document.body.clientHeight
-    );
-  };
+  // const handleResultClose = () => {
+  //   setResultOpen(false);
+  // };
+  // const getHeight = () => {
+  //   return (
+  //     window.innerHeight ||
+  //     document.documentElement.clientHeight ||
+  //     document.body.clientHeight
+  //   );
+  // };
 
   return (
     <div className="">
