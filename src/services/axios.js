@@ -5,7 +5,8 @@ import axios from "axios";
 
 /* http://52.158.47.57 */
 axios.defaults.baseURL =
-  process.env.REACT_APP_API_URL || "http://52.158.47.57:8080";
+  process.env.REACT_APP_API_URL ||
+  "https://backend-eskupstina.azurewebsites.net/";
 
 const signInUser = async (props) => {
   try {

@@ -115,7 +115,7 @@ export default function MainScene(props) {
       // setParty(Object.keys(partyGroup));
       // setUsers(Object.values(partyGroup));
 
-      const partyGroup2 = resp.data.reduce((acc, obj) => {
+      const partyGroup2 = resp.data?.reduce((acc, obj) => {
         const key = obj.party;
         if (!acc[key]) {
           acc[key] = [];
@@ -154,7 +154,7 @@ export default function MainScene(props) {
       // setNoNum(no);
       // setAbstrainedNum(ab);
       // setNotVotedNum(yes + no + ab);
-      const result = tmp.reduce((acc, obj) => {
+      const result = tmp?.reduce((acc, obj) => {
         const key = obj.decision;
         if (!acc[key]) {
           acc[key] = [];
@@ -238,7 +238,10 @@ export default function MainScene(props) {
           >
             {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
             <PdfViewer
-              url={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex}
+              url={
+                "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
+                selectedIndex
+              }
             />
             <div className="absolute bottom-5 right-10">
               <button
