@@ -34,7 +34,7 @@ export default function LoginScene() {
       <div className="w-full h-screen flex justify-center bg-[#FFF]">
         <div className="flex flex-col ">
           <div className="text-[40px] text-[#00f] text-[700] mt-[80px] text-center">
-            Prijava
+            Prijavaqqqqqqqqqqqqqqqq
           </div>
           <div className="w-72 mt-[20px]">
             <Input
