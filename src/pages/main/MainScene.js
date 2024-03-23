@@ -242,6 +242,10 @@ export default function MainScene(props) {
                 "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
                 selectedIndex
               }
+              onError={(error) => {
+                console.error("Error fetching PDF:", error);
+                // Handle error (e.g., display an error message to the user)
+              }}
             />
             <div className="absolute bottom-5 right-10">
               <button
