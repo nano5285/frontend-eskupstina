@@ -1,22 +1,13 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.css";
-import Router from "./router";
-import reportWebVitals from "./reportWebVitals";
-import { ThemeProvider } from "@material-tailwind/react";
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
-import { AuthProvider } from "./authContext";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ThemeProvider>
-      <AuthProvider>
-        <Router />
-      </AuthProvider>
-      <ToastContainer />
-    </ThemeProvider>
+    <App />
   </React.StrictMode>
 );
 
