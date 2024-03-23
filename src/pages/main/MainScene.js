@@ -17,6 +17,8 @@ import UserComponent from "../../components/UserComponent";
 import { toast } from "react-toastify";
 import ZoomSvg from "../../assets/Zoom.svg";
 import PdfViewer from "../../components/CustomPdfViewer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 export default function MainScene(props) {
   const { state } = useLocation();
@@ -214,7 +216,19 @@ export default function MainScene(props) {
         <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
           {isFullScreen && (
             <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
-              {userName}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "17px",
+                  marginTop: "-17px",
+                }}
+              >
+                <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {userName}
+                </span>
+              </div>{" "}
               {agendas.map((item, index) => {
                 return (
                   <CustomButton
