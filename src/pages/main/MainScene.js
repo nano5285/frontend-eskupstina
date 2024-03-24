@@ -225,7 +225,13 @@ export default function MainScene(props) {
                 }}
               >
                 <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
-                <span style={{ display: "flex", alignItems: "center" }}>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: "17px",
+                  }}
+                >
                   {userName}
                 </span>
               </div>{" "}
