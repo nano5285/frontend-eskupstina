@@ -4,7 +4,7 @@ import AbstainSvg from "../assets/Abstain.svg";
 
 export default function UserComponent({ decision, name }) {
   return (
-    <div className="w-full  bg-[#fff]">
+    <div className="  bg-[#fff]">
       {decision === 0 && (
         <div className="flex flex-row items-center">
           <div className="w-[60px] h-[60px]">

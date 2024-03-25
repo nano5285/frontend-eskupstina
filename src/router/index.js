@@ -4,6 +4,7 @@ import { Route, Routes, BrowserRouter, Navigate } from "react-router-dom";
 import SignUpScene from "../pages/auth/LoginScene";
 import LoginScene from "../pages/auth/LoginScene";
 import MainScene from "../pages/main/MainScene";
+import TvScreen from "../pages/tv/TvScreen";
 import { useAuth } from "../authContext";
 
 export default function Router() {
@@ -19,6 +20,7 @@ export default function Router() {
           path="/main"
           element={isLoggedIn ? <MainScene /> : <Navigate to="/" />}
         />
+        <Route path="/tv" element={<TvScreen />} />
       </Routes>
     </BrowserRouter>
   );
