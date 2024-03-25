@@ -14,6 +14,7 @@ import {
   resetVote,
   startVote,
 } from "../../services/axios";
+import { socket } from "../../utils/socket";
 export default function LoginScene() {
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
@@ -27,8 +28,23 @@ export default function LoginScene() {
   const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [emitAgendaIndex, setEmitAgendaIndex] = useState(0);
 
   const [selectedAgenda, setSelectedAgenda] = useState([]);
+
+  socket.on("message", function (data) {
+    setEmitAgendaIndex(data);
+    setOpen(!open);
+  });
+
+  socket.on("vote_update", function (data) {
+    console.log("vote updated.......");
+    setUpdateFlag(!updateFlag);
+  });
+
+  socket.on("vote_close", function (data) {
+    setOpen(false);
+  });
   useEffect(() => {
     const getAgendasAndUsers = async () => {
       const userId = localStorage.getItem("userId");
@@ -55,6 +71,7 @@ export default function LoginScene() {
       setUsers(partyUsers);
       const res = await getAgenda();
       setAgendas(res.data);
+      //   console.log(res.data);
       let tmp;
       if (
         res.data[selectedIndex]?.vote_info &&
@@ -116,13 +133,13 @@ export default function LoginScene() {
       <div className="text-center row justify-content-center">
         <div className="col-md-6 border border-dark p-4">
           <div className="mb-4 bold-title" style={{ fontWeight: "bold" }}>
-            title of agenda
+            {agendas.name}
           </div>
           <div>
             <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B]">
-                  value
+                  {notVotedNum}
                 </div>
                 <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
                   In total
@@ -130,7 +147,7 @@ export default function LoginScene() {
               </div>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] ">
-                  value
+                  {yesNum}
                 </div>
                 <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
                   For
@@ -138,7 +155,7 @@ export default function LoginScene() {
               </div>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] ">
-                  555555
+                  {abstrainedNum}
                 </div>
                 <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
                   Restrained
@@ -146,7 +163,7 @@ export default function LoginScene() {
               </div>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] ">
-                  77777
+                  {noNum}
                 </div>
                 <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
                   Against
