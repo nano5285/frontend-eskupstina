@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import {
   closeVote,
   getAgenda,
+  getAgenda2,
   getUser,
   handleVote,
   resetVote,
@@ -29,8 +30,9 @@ export default function LoginScene() {
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [emitAgendaIndex, setEmitAgendaIndex] = useState(0);
-
+  const [agendaName, setAgendaName] = useState("");
   const [selectedAgenda, setSelectedAgenda] = useState([]);
+  const [agendaId, setAgendaId] = useState("");
 
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
@@ -38,13 +40,22 @@ export default function LoginScene() {
   });
 
   socket.on("vote_update", function (data) {
-    console.log("vote updated.......");
+    setAgendaId(data);
     setUpdateFlag(!updateFlag);
   });
 
   socket.on("vote_close", function (data) {
     setOpen(false);
   });
+  useEffect(() => {
+    if (agendaId) {
+      const getdata = async () => {
+        const res = await getAgenda2(agendaId);
+        setAgendaName(res.data.name);
+      };
+      getdata();
+    }
+  }, [agendaId]);
   useEffect(() => {
     const getAgendasAndUsers = async () => {
       const userId = localStorage.getItem("userId");
@@ -70,14 +81,15 @@ export default function LoginScene() {
       setParty(partyNames);
       setUsers(partyUsers);
       const res = await getAgenda();
-      setAgendas(res.data);
+      setAgendas(res);
       //   console.log(res.data);
       let tmp;
+      const data = res.data.findIndex((obj) => obj._id === agendaId);
       if (
-        res.data[selectedIndex]?.vote_info &&
-        res.data[selectedIndex]?.vote_info !== "undefined"
+        res.data[data]?.vote_info &&
+        res.data[data]?.vote_info !== "undefined"
       ) {
-        tmp = JSON.parse(res.data[selectedIndex]?.vote_info);
+        tmp = JSON.parse(res.data[data]?.vote_info);
       }
       setSelectedAgenda(tmp);
       if (tmp == null) {
@@ -133,7 +145,7 @@ export default function LoginScene() {
       <div className="text-center row justify-content-center">
         <div className="col-md-6 border border-dark p-4">
           <div className="mb-4 bold-title" style={{ fontWeight: "bold" }}>
-            {agendas.name}
+            {agendaName}
           </div>
           <div>
             <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
@@ -176,7 +188,10 @@ export default function LoginScene() {
               {" "}
               {party?.map((item, index) => {
                 return (
-                  <div className="flex flex-col basis-1/2 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px]">
+                  <div
+                    key={index}
+                    className="flex flex-col basis-1/2 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px]"
+                  >
                     <div className="" key={index}>
                       <div className="text-[20px] text-[700] text-[#2E2E2E] text-center mt-[20px]">
                         {item}

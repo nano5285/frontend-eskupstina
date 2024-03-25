@@ -37,6 +37,18 @@ const getAgenda = async (props) => {
     return error.response;
   }
 };
+const getAgenda2 = async (props) => {
+  try {
+    var result = await axios.get(`/api/get_agenda/?id=${props}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 
 const getUser = async (props) => {
   try {
@@ -119,6 +131,7 @@ const resetVote = async (props) => {
 export {
   signInUser,
   getAgenda,
+  getAgenda2,
   getUser,
   handleVote,
   getVote,

@@ -64,11 +64,17 @@ export default function MainScene(props) {
       agenda_id: agendas[emitAgendaIndex]._id,
       decision: param,
     };
+    const voteData2 = {
+      user_id: state?.userId,
+      agenda_id: agendas[emitAgendaIndex]._id,
+      decision: param.toString(),
+    };
     console.log(
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    let res = await handleVote(voteData);
+    let res = await handleVote(voteData2);
+    console.log(res, "mkjjljkllkmklm");
     socket.emit("vote_update", "message");
   };
 
@@ -77,22 +83,26 @@ export default function MainScene(props) {
       toast("Voting already closed!");
       return;
     }
-    socket.emit("message", selectedIndex);
+    socket.emit("message", selectedIndex, agendas[selectedIndex]._id);
     const startVoteData = {
       agenda_item_id: agendas[selectedIndex]._id,
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_update", "message");
+    socket.emit("vote_update", agendas[selectedIndex]._id);
   };
 
   const sendVoteClose = async () => {
-    socket.emit("vote_update", "message");
-    socket.emit("vote_close", {
-      yesNum: yesNum,
-      noNum: noNum,
-      abstrainedNum: abstrainedNum,
-    });
+    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
+    socket.emit(
+      "vote_close",
+      {
+        yesNum: yesNum,
+        noNum: noNum,
+        abstrainedNum: abstrainedNum,
+      },
+      agendas[selectedIndex]._id
+    );
     await closeVote(startedVote);
     setAdminOpen(false);
   };
@@ -103,7 +113,7 @@ export default function MainScene(props) {
     };
     await resetVote(resetData);
     setIsReset(!isReset);
-    socket.emit("vote_update", "message");
+    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
   };
 
   //
