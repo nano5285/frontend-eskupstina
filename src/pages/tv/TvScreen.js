@@ -33,15 +33,18 @@ export default function LoginScene() {
   const [agendaName, setAgendaName] = useState("");
   const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [agendaId, setAgendaId] = useState("");
+  const [updateChange, setUpdateChange] = useState(false);
 
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
     setOpen(!open);
+    setUpdateChange(!updateChange);
   });
 
-  socket.on("vote_update", function (data) {
-    setAgendaId(data);
+  socket.on("vote_update", function (data, id) {
+    setAgendaId(id);
     setUpdateFlag(!updateFlag);
+    setUpdateChange(!updateChange);
   });
 
   socket.on("vote_close", function (data) {
@@ -55,7 +58,8 @@ export default function LoginScene() {
       };
       getdata();
     }
-  }, [agendaId]);
+    console.log(updateChange, "asbd");
+  }, [agendaId, updateChange]);
   useEffect(() => {
     const getAgendasAndUsers = async () => {
       const userId = localStorage.getItem("userId");

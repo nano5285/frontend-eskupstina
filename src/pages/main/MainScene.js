@@ -71,7 +71,7 @@ export default function MainScene(props) {
     );
     let res = await handleVote(voteData);
     console.log(res, "mkjjljkllkmklm");
-    socket.emit("vote_update", "message");
+    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
   };
 
   const sendVoteStart = async () => {
@@ -85,7 +85,7 @@ export default function MainScene(props) {
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_update", agendas[selectedIndex]._id);
+    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
   };
 
   const sendVoteClose = async () => {
