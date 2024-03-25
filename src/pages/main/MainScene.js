@@ -64,16 +64,12 @@ export default function MainScene(props) {
       agenda_id: agendas[emitAgendaIndex]._id,
       decision: param,
     };
-    const voteData2 = {
-      user_id: state?.userId,
-      agenda_id: agendas[emitAgendaIndex]._id,
-      decision: param.toString(),
-    };
+
     console.log(
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    let res = await handleVote(voteData2);
+    let res = await handleVote(voteData);
     console.log(res, "mkjjljkllkmklm");
     socket.emit("vote_update", "message");
   };
