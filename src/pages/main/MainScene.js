@@ -18,8 +18,8 @@ import { toast } from "react-toastify";
 import ZoomSvg from "../../assets/Zoom.svg";
 import PdfViewer from "../../components/CustomPdfViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-
+import { faSignOutAlt, faUser } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
@@ -41,7 +41,7 @@ export default function MainScene(props) {
   const [resultOpen, setResultOpen] = useState(false);
   const userName = localStorage.getItem("userName");
   const [selectedAgendaPdf, setSelectedAgendaPdf] = useState("00.pdf");
-
+  const navigate = useNavigate();
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
     setOpen(!open);
@@ -201,7 +201,10 @@ export default function MainScene(props) {
       return 3;
     }
   };
-
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
   // const handleResultClose = () => {
   //   setResultOpen(false);
   // };
@@ -229,6 +232,7 @@ export default function MainScene(props) {
                   alignItems: "center",
                   marginBottom: "17px",
                   marginTop: "-17px",
+                  justifyContent: "space-between",
                 }}
               >
                 <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
@@ -240,6 +244,19 @@ export default function MainScene(props) {
                   }}
                 >
                   {userName}
+                </span>
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: "17px",
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faSignOutAlt}
+                    style={{ marginRight: "5px", cursor: "pointer" }}
+                    onClick={handleLogout}
+                  />
                 </span>
               </div>{" "}
               {agendas.map((item, index) => {
