@@ -40,6 +40,7 @@ export default function MainScene(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const userName = localStorage.getItem("userName");
+  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState("00.pdf");
 
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
@@ -251,6 +252,7 @@ export default function MainScene(props) {
                     name={item.name}
                     onClick={() => {
                       setSelectedIndex(index);
+                      setSelectedAgendaPdf(agendas[index]?.pdf_path);
                     }}
                   ></CustomButton>
                 );
@@ -266,7 +268,7 @@ export default function MainScene(props) {
             <PdfViewer
               url={
                 "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
-                selectedIndex
+                selectedAgendaPdf
               }
               onError={(error) => {
                 console.error("Error fetching PDF:", error);
