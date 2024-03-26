@@ -20,6 +20,7 @@ import PdfViewer from "../../components/CustomPdfViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../authContext";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
@@ -201,9 +202,11 @@ export default function MainScene(props) {
       return 3;
     }
   };
+  const { logout } = useAuth();
   const handleLogout = () => {
-    localStorage.clear();
     navigate("/");
+    logout();
+    localStorage.clear();
   };
   // const handleResultClose = () => {
   //   setResultOpen(false);
