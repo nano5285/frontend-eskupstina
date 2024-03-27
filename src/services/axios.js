@@ -62,6 +62,18 @@ const getUser = async (props) => {
     return error.response;
   }
 };
+const getTvUsers = async (props) => {
+  try {
+    var result = await axios.get("/api/tv-users/", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 
 const handleVote = async (props) => {
   try {
@@ -133,6 +145,7 @@ export {
   getAgenda,
   getAgenda2,
   getUser,
+  getTvUsers,
   handleVote,
   getVote,
   startVote,

@@ -1,20 +1,9 @@
-import { Button, Input } from "@material-tailwind/react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { signInUser } from "../../services/axios";
-import { useAuth } from "../../authContext";
+import { getTvUsers } from "../../services/axios";
 import "./tv.css";
 import UserComponent from "../../components/UserComponent";
 import { useEffect } from "react";
-import {
-  closeVote,
-  getAgenda,
-  getAgenda2,
-  getUser,
-  handleVote,
-  resetVote,
-  startVote,
-} from "../../services/axios";
+import { getAgenda, getAgenda2 } from "../../services/axios";
 import { socket } from "../../utils/socket";
 export default function LoginScene() {
   const [party, setParty] = useState([]);
@@ -34,6 +23,11 @@ export default function LoginScene() {
   const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [agendaId, setAgendaId] = useState("");
   const [updateChange, setUpdateChange] = useState(false);
+  useEffect(() => {
+    socket.on("live_voting_results", (agendaId) => {
+      setAgendaId(agendaId);
+    });
+  }, []);
 
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
@@ -58,12 +52,10 @@ export default function LoginScene() {
       };
       getdata();
     }
-    console.log(updateChange, "asbd");
   }, [agendaId, updateChange]);
   useEffect(() => {
     const getAgendasAndUsers = async () => {
-      const userId = localStorage.getItem("userId");
-      const resp = await getUser({ id: userId });
+      const resp = await getTvUsers();
 
       // const partyGroup = Object.groupBy(resp.data, ({ party }) => party);
       // Object.values(partyGroup);
@@ -86,7 +78,6 @@ export default function LoginScene() {
       setUsers(partyUsers);
       const res = await getAgenda();
       setAgendas(res);
-      //   console.log(res.data);
       let tmp;
       const data = res.data.findIndex((obj) => obj._id === agendaId);
       if (
@@ -132,7 +123,7 @@ export default function LoginScene() {
       setNotVotedNum(yes + no + ab);
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, open, adminOpen, updateFlag]);
+  }, [selectedIndex, isReset, open, adminOpen, updateFlag, agendaId]);
   const getDecisionFromAgenda = (userId, voteInfo) => {
     if (voteInfo == null) return 3;
     else {

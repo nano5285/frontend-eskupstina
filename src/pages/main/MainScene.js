@@ -42,17 +42,48 @@ export default function MainScene(props) {
   const [resultOpen, setResultOpen] = useState(false);
   const userName = localStorage.getItem("userName");
   const [selectedAgendaPdf, setSelectedAgendaPdf] = useState("00.pdf");
+  const [currentVotingAgenda, setCurrentVotingAgenda] = useState("");
+  const [changeIndex, setChangeIndex] = useState(false);
   const navigate = useNavigate();
+  useEffect(() => {
+    socket.on("live_voting_results", async (agendaId) => {
+      if (agendaId) {
+        setCurrentVotingAgenda(agendaId);
+        const res = await getAgenda();
+        res.data.forEach((item) => {
+          if (item._id === agendaId) {
+            const abc = JSON.parse(item.vote_info);
+            const exists = JSON.parse(item.vote_info).some(
+              (element) => element.user_id === localStorage.getItem("userId")
+            );
+            if (!exists) setOpen(true);
+          }
+        });
+      }
+    });
+  }, []);
+
   socket.on("message", function (data) {
     setEmitAgendaIndex(data);
+  });
+  socket.on("vote_start", function (agendaId) {
+    setCurrentVotingAgenda(agendaId);
     setOpen(!open);
+    setChangeIndex(true);
   });
 
-  socket.on("vote_update", function (data) {
+  socket.on("vote_update", function (message, agendaId) {
+    // setCurrentVotingAgenda(agendaId);
+    // setSelectedIndex(
+    //   agendas.findIndex((element) => element._id == currentVotingAgenda)
+    // );
     setUpdateFlag(!updateFlag);
   });
 
   socket.on("vote_close", function (data) {
+    setOpen(false);
+  });
+  socket.on("vote_reset", function (data) {
     setOpen(false);
   });
 
@@ -63,7 +94,7 @@ export default function MainScene(props) {
     setOpen(!open);
     const voteData = {
       user_id: state?.userId,
-      agenda_id: agendas[emitAgendaIndex]._id,
+      agenda_id: agendas[selectedIndex]._id,
       decision: param,
     };
 
@@ -72,7 +103,6 @@ export default function MainScene(props) {
       voteData
     );
     let res = await handleVote(voteData);
-    console.log(res, "mkjjljkllkmklm");
     socket.emit("vote_update", "message", agendas[selectedIndex]._id);
   };
 
@@ -81,13 +111,13 @@ export default function MainScene(props) {
       toast("Voting already closed!");
       return;
     }
-    socket.emit("message", selectedIndex, agendas[selectedIndex]._id);
+    // socket.emit("message", selectedIndex, agendas[selectedIndex]._id);
     const startVoteData = {
       agenda_item_id: agendas[selectedIndex]._id,
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
+    socket.emit("vote_start", agendas[selectedIndex]._id);
   };
 
   const sendVoteClose = async () => {
@@ -107,11 +137,12 @@ export default function MainScene(props) {
 
   const sendVoteReset = async () => {
     const resetData = {
-      agenda_id: agendas[selectedIndex]._id,
+      agenda_id: agendas[selectedIndex]?._id,
     };
     await resetVote(resetData);
     setIsReset(!isReset);
-    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
+    socket.emit("vote_update", "message", null);
+    socket.emit("vote_reset", "message", null);
   };
 
   //
@@ -141,6 +172,8 @@ export default function MainScene(props) {
       setUsers(partyUsers);
       const res = await getAgenda();
       setAgendas(res.data);
+      // get inedx of selected agenda for api
+
       let tmp;
       if (
         res.data[selectedIndex]?.vote_info &&
@@ -185,8 +218,15 @@ export default function MainScene(props) {
       setNotVotedNum(yes + no + ab);
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, open, adminOpen, updateFlag]);
-
+  }, [selectedIndex, isReset, open, adminOpen, updateFlag, ,]);
+  useEffect(() => {
+    if (changeIndex) {
+      setSelectedIndex(
+        agendas.findIndex((element) => element._id == currentVotingAgenda)
+      );
+      setChangeIndex(false);
+    }
+  }, [currentVotingAgenda]);
   const checkAgendaState = () => {
     return agendas[selectedIndex].vote_state;
   };
@@ -272,6 +312,7 @@ export default function MainScene(props) {
                     name={item.name}
                     onClick={() => {
                       setSelectedIndex(index);
+                      setChangeIndex(true);
                       setSelectedAgendaPdf(agendas[index]?.pdf_path);
                     }}
                   ></CustomButton>
