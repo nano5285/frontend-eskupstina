@@ -117,7 +117,11 @@ export default function MainScene(props) {
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_start", agendas[selectedIndex]._id);
+    socket.emit(
+      "vote_start",
+      agendas[selectedIndex]._id,
+      agendas[selectedIndex]
+    );
   };
 
   const sendVoteClose = async () => {
@@ -172,6 +176,7 @@ export default function MainScene(props) {
       setUsers(partyUsers);
       const res = await getAgenda();
       setAgendas(res.data);
+      setSelectedAgendaPdf(res.data[selectedIndex]._id);
       // get inedx of selected agenda for api
 
       let tmp;
@@ -329,7 +334,7 @@ export default function MainScene(props) {
             {selectedAgendaPdf && (
               <PdfViewer
                 url={
-                  "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
+                  "https://backend-eskupstina.azurewebsites.net/api/pdf-blob?agenda=" +
                   selectedAgendaPdf
                 }
                 onError={(error) => {

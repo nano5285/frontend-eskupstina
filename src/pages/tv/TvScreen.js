@@ -23,6 +23,7 @@ export default function LoginScene() {
   const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [agendaId, setAgendaId] = useState("");
   const [updateChange, setUpdateChange] = useState(false);
+  const [agenda, setAgenda] = useState("");
   useEffect(() => {
     socket.on("live_voting_results", (agendaId) => {
       setAgendaId(agendaId);
@@ -34,34 +35,29 @@ export default function LoginScene() {
     setOpen(!open);
     setUpdateChange(!updateChange);
   });
-
-  socket.on("vote_update", function (data, id) {
-    setAgendaId(id);
-    setUpdateFlag(!updateFlag);
-    setUpdateChange(!updateChange);
+  socket.on("vote_Start", (id, agenda) => {
+    setAgenda(agenda);
+  });
+  socket.on("vote_update", function (message, id, agenda) {
+    setAgenda(agenda);
   });
 
   socket.on("vote_close", function (data) {
     setOpen(false);
   });
+
+  // useEffect(() => {
+  //   if (agendaId) {
+  //     const getdata = async () => {
+  //       const res = await getAgenda2(agendaId);
+  //       setAgendaName(res.data.name);
+  //     };
+  //     getdata();
+  //   }
+  // }, [agendaId, updateChange]);
   useEffect(() => {
-    if (agendaId) {
-      const getdata = async () => {
-        const res = await getAgenda2(agendaId);
-        setAgendaName(res.data.name);
-      };
-      getdata();
-    }
-  }, [agendaId, updateChange]);
-  useEffect(() => {
-    const getAgendasAndUsers = async () => {
+    const getUsers = async () => {
       const resp = await getTvUsers();
-
-      // const partyGroup = Object.groupBy(resp.data, ({ party }) => party);
-      // Object.values(partyGroup);
-      // setParty(Object.keys(partyGroup));
-      // setUsers(Object.values(partyGroup));
-
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
         const key = obj.party;
         if (!acc[key]) {
@@ -76,15 +72,16 @@ export default function LoginScene() {
 
       setParty(partyNames);
       setUsers(partyUsers);
-      const res = await getAgenda();
-      setAgendas(res);
+    };
+    getUsers();
+  }, []);
+
+  useEffect(() => {
+    const getAgendasAndUsers = async () => {
       let tmp;
-      const data = res.data.findIndex((obj) => obj._id === agendaId);
-      if (
-        res.data[data]?.vote_info &&
-        res.data[data]?.vote_info !== "undefined"
-      ) {
-        tmp = JSON.parse(res.data[data]?.vote_info);
+      // const data = agendas.findIndex((obj) => obj._id === agendaId);
+      if (agenda?.vote_info && agenda?.vote_info !== "undefined") {
+        tmp = JSON.parse(agenda?.vote_info);
       }
       setSelectedAgenda(tmp);
       if (tmp == null) {
@@ -94,14 +91,6 @@ export default function LoginScene() {
         setNotVotedNum(0);
         return;
       }
-      // const result = Object.groupBy(tmp, ({ decision }) => decision);
-      // let yes = result["1"]?.length === undefined ? 0 : result["1"]?.length;
-      // let no = result["0"]?.length === undefined ? 0 : result["0"]?.length;
-      // let ab = result["2"]?.length === undefined ? 0 : result["2"]?.length;
-      // setYesNum(yes);
-      // setNoNum(no);
-      // setAbstrainedNum(ab);
-      // setNotVotedNum(yes + no + ab);
       const result = tmp?.reduce((acc, obj) => {
         const key = obj.decision;
         if (!acc[key]) {
@@ -123,7 +112,7 @@ export default function LoginScene() {
       setNotVotedNum(yes + no + ab);
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, open, adminOpen, updateFlag, agendaId]);
+  }, [agenda]);
   const getDecisionFromAgenda = (userId, voteInfo) => {
     if (voteInfo == null) return 3;
     else {
