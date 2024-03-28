@@ -41,7 +41,7 @@ export default function MainScene(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const userName = localStorage.getItem("userName");
-  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState("00.pdf");
+  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState();
   const [currentVotingAgenda, setCurrentVotingAgenda] = useState("");
   const [changeIndex, setChangeIndex] = useState(false);
   const navigate = useNavigate();
@@ -313,7 +313,7 @@ export default function MainScene(props) {
                     onClick={() => {
                       setSelectedIndex(index);
                       setChangeIndex(true);
-                      setSelectedAgendaPdf(agendas[index]?.pdf_path);
+                      setSelectedAgendaPdf(agendas[index]?._id);
                     }}
                   ></CustomButton>
                 );
@@ -326,16 +326,18 @@ export default function MainScene(props) {
             } relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`}
           >
             {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
-            <PdfViewer
-              url={
-                "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
-                selectedAgendaPdf
-              }
-              onError={(error) => {
-                console.error("Error fetching PDF:", error);
-                // Handle error (e.g., display an error message to the user)
-              }}
-            />
+            {selectedAgendaPdf && (
+              <PdfViewer
+                url={
+                  "https://backend-eskupstina.azurewebsites.net/api/pdf?agenda=" +
+                  selectedAgendaPdf
+                }
+                onError={(error) => {
+                  console.error("Error fetching PDF:", error);
+                  // Handle error (e.g., display an error message to the user)
+                }}
+              />
+            )}
             <div className="absolute bottom-5 right-10">
               <button
                 onClick={() => {
