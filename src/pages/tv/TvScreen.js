@@ -62,11 +62,14 @@ export default function LoginScene() {
     const getUsers = async () => {
       const resp = await getTvUsers();
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
-        const key = obj.party;
-        if (!acc[key]) {
-          acc[key] = [];
+        if (obj !== undefined && obj !== null) {
+          const key = obj.party;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
         }
-        acc[key].push(obj);
         return acc;
       }, {});
       const partyNames = Object.keys(partyGroup2);
@@ -92,11 +95,14 @@ export default function LoginScene() {
         return;
       }
       const result = tmp?.reduce((acc, obj) => {
-        const key = obj?.decision;
-        if (!acc[key]) {
-          acc[key] = [];
+        if (obj !== null && obj !== undefined) {
+          const key = obj?.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
         }
-        acc[key].push(obj);
         return acc;
       }, {});
 

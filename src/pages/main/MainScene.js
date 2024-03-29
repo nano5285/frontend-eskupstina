@@ -46,6 +46,7 @@ export default function MainScene(props) {
   const [votingAgenda, setVotingAgenda] = useState();
   const [connected, setConnected] = useState();
   const navigate = useNavigate();
+  const currentUser = localStorage.getItem("userId");
   socket.on("connect", function () {
     setConnected(true);
   });
@@ -98,7 +99,7 @@ export default function MainScene(props) {
     }
     setOpen(!open);
     const voteData = {
-      user_id: state?.userId,
+      user_id: currentUser,
       agenda_id: agendas[selectedIndex]._id,
       decision: param,
     };
@@ -237,7 +238,7 @@ export default function MainScene(props) {
         return;
       }
       const result = tmp?.reduce((acc, obj) => {
-        if (obj) {
+        if (obj !== null && obj !== undefined) {
           const key = obj.decision;
           if (!acc[key]) {
             acc[key] = [];
@@ -245,6 +246,7 @@ export default function MainScene(props) {
           acc[key].push(obj);
           return acc;
         }
+        return acc;
       }, {});
 
       // Counting the number of objects for each decision
