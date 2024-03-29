@@ -21,6 +21,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../authContext";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
@@ -46,6 +47,7 @@ export default function MainScene(props) {
   const [connected, setConnected] = useState();
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("userId");
+  const [showLogout, setShowLogout] = useState(false);
   socket.on("connect", function () {
     setConnected(true);
   });
@@ -290,17 +292,10 @@ export default function MainScene(props) {
     logout();
     localStorage.clear();
   };
-  // const handleResultClose = () => {
-  //   setResultOpen(false);
-  // };
-  // const getHeight = () => {
-  //   return (
-  //     window.innerHeight ||
-  //     document.documentElement.clientHeight ||
-  //     document.body.clientHeight
-  //   );
-  // };
 
+  const toggleLogout = () => {
+    setShowLogout(!showLogout);
+  };
   return (
     <div className="">
       <div
@@ -311,38 +306,42 @@ export default function MainScene(props) {
         <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
           {isFullScreen && (
             <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
+              <div style={{ position: "relative" }}>
+                <FontAwesomeIcon icon={faBars} onClick={toggleLogout} />
+                {showLogout && (
+                  <div
+                    id="logout"
+                    className="position-absolute top-50 end-0 translate-middle-y"
+                    style={{
+                      backgroundColor:
+                        "rgb(213 213 213 / var(--tw-bg-opacity))",
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                      marginBottom: "2px",
+                      cursor: "pointer",
+                    }}
+                    onClick={handleLogout}
+                  >
+                    <FontAwesomeIcon className="ml-1" icon={faSignOutAlt} />
+                    <button className="btn ml-2">Logout</button>
+                  </div>
+                )}
+              </div>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   marginBottom: "17px",
-                  marginTop: "-17px",
-                  justifyContent: "space-between",
+                  marginTop: "0px",
+                  justifyContent: "flex-start",
+                  marginLeft: "40px",
+                  position: "absolute",
                 }}
               >
                 <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
-                <span
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginLeft: "17px",
-                  }}
-                >
-                  {userName}
-                </span>
-                <span
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginLeft: "17px",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faSignOutAlt}
-                    style={{ marginRight: "5px", cursor: "pointer" }}
-                    onClick={handleLogout}
-                  />
-                </span>
+                <span style={{ marginLeft: "8px" }}>{userName}</span>
               </div>{" "}
               {agendas.map((item, index) => {
                 return (
