@@ -39,12 +39,16 @@ export default function MainScene(props) {
   const [isFullScreen, setIsFullScreen] = useState(true);
   const [isReset, setIsReset] = useState(false);
   const [updateFlag, setUpdateFlag] = useState(false);
-  const [resultOpen, setResultOpen] = useState(false);
   const userName = localStorage.getItem("userName");
   const [selectedAgendaPdf, setSelectedAgendaPdf] = useState();
   const [currentVotingAgenda, setCurrentVotingAgenda] = useState("");
   const [changeIndex, setChangeIndex] = useState(false);
+  const [votingAgenda, setVotingAgenda] = useState();
+  const [connected, setConnected] = useState();
   const navigate = useNavigate();
+  socket.on("connect", function () {
+    setConnected(true);
+  });
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
       if (agendaId) {
@@ -52,8 +56,7 @@ export default function MainScene(props) {
         const res = await getAgenda();
         res.data.forEach((item) => {
           if (item._id === agendaId) {
-            const abc = JSON.parse(item.vote_info);
-            const exists = JSON.parse(item.vote_info).some(
+            const exists = JSON.parse(item.vote_info)?.some(
               (element) => element.user_id === localStorage.getItem("userId")
             );
             if (!exists) setOpen(true);
@@ -72,11 +75,8 @@ export default function MainScene(props) {
     setChangeIndex(true);
   });
 
-  socket.on("vote_update", function (message, agendaId) {
-    // setCurrentVotingAgenda(agendaId);
-    // setSelectedIndex(
-    //   agendas.findIndex((element) => element._id == currentVotingAgenda)
-    // );
+  socket.on("vote_update", function (message, agendaId, agenda) {
+    setVotingAgenda(agenda);
     setUpdateFlag(!updateFlag);
   });
 
@@ -85,6 +85,11 @@ export default function MainScene(props) {
   });
   socket.on("vote_reset", function (data) {
     setOpen(false);
+    setVotingAgenda(null);
+  });
+
+  socket.on("disconnect", function () {
+    setConnected(false);
   });
 
   const changeVoteView = async (param) => {
@@ -102,8 +107,10 @@ export default function MainScene(props) {
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    let res = await handleVote(voteData);
-    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
+    socket.emit("vote_update", "message", agendas[selectedIndex]._id, voteData);
+    if (!connected) {
+      let res = await handleVote(voteData);
+    }
   };
 
   const sendVoteStart = async () => {
@@ -111,7 +118,6 @@ export default function MainScene(props) {
       toast("Voting already closed!");
       return;
     }
-    // socket.emit("message", selectedIndex, agendas[selectedIndex]._id);
     const startVoteData = {
       agenda_item_id: agendas[selectedIndex]._id,
     };
@@ -145,21 +151,52 @@ export default function MainScene(props) {
     };
     await resetVote(resetData);
     setIsReset(!isReset);
-    socket.emit("vote_update", "message", null);
+    socket.emit("vote_update", "message");
     socket.emit("vote_reset", "message", null);
   };
 
-  //
   useEffect(() => {
-    const getAgendasAndUsers = async () => {
+    let tmp;
+    if (votingAgenda?.vote_info && votingAgenda?.vote_info !== "undefined") {
+      tmp = JSON.parse(votingAgenda?.vote_info);
+    }
+    setSelectedAgenda(tmp);
+    if (tmp == null) {
+      setYesNum(0);
+      setNoNum(0);
+      setAbstrainedNum(0);
+      setNotVotedNum(0);
+      return;
+    }
+    const result = tmp?.reduce((acc, obj) => {
+      if (obj) {
+        const key = obj.decision;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+      }
+    }, {});
+
+    // Counting the number of objects for each decision
+    if (result) {
+      const yes = result["1"] ? result["1"].length : 0;
+      const no = result["0"] ? result["0"].length : 0;
+      const ab = result["2"] ? result["2"].length : 0;
+
+      // Setting the state variables
+      setYesNum(yes);
+      setNoNum(no);
+      setAbstrainedNum(ab);
+      setNotVotedNum(yes + no + ab);
+    }
+  }, [votingAgenda]);
+
+  useEffect(() => {
+    const getUsers = async () => {
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
-
-      // const partyGroup = Object.groupBy(resp.data, ({ party }) => party);
-      // Object.values(partyGroup);
-      // setParty(Object.keys(partyGroup));
-      // setUsers(Object.values(partyGroup));
-
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
         const key = obj.party;
         if (!acc[key]) {
@@ -174,10 +211,15 @@ export default function MainScene(props) {
 
       setParty(partyNames);
       setUsers(partyUsers);
+    };
+    getUsers();
+  }, []);
+
+  useEffect(() => {
+    const getAgendasAndUsers = async () => {
       const res = await getAgenda();
       setAgendas(res.data);
       setSelectedAgendaPdf(res.data[selectedIndex]._id);
-      // get inedx of selected agenda for api
 
       let tmp;
       if (
@@ -194,36 +236,32 @@ export default function MainScene(props) {
         setNotVotedNum(0);
         return;
       }
-      // const result = Object.groupBy(tmp, ({ decision }) => decision);
-      // let yes = result["1"]?.length === undefined ? 0 : result["1"]?.length;
-      // let no = result["0"]?.length === undefined ? 0 : result["0"]?.length;
-      // let ab = result["2"]?.length === undefined ? 0 : result["2"]?.length;
-      // setYesNum(yes);
-      // setNoNum(no);
-      // setAbstrainedNum(ab);
-      // setNotVotedNum(yes + no + ab);
       const result = tmp?.reduce((acc, obj) => {
-        const key = obj.decision;
-        if (!acc[key]) {
-          acc[key] = [];
+        if (obj) {
+          const key = obj.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
         }
-        acc[key].push(obj);
-        return acc;
       }, {});
 
       // Counting the number of objects for each decision
-      const yes = result["1"] ? result["1"].length : 0;
-      const no = result["0"] ? result["0"].length : 0;
-      const ab = result["2"] ? result["2"].length : 0;
+      if (result) {
+        const yes = result["1"] ? result["1"].length : 0;
+        const no = result["0"] ? result["0"].length : 0;
+        const ab = result["2"] ? result["2"].length : 0;
 
-      // Setting the state variables
-      setYesNum(yes);
-      setNoNum(no);
-      setAbstrainedNum(ab);
-      setNotVotedNum(yes + no + ab);
+        // Setting the state variables
+        setYesNum(yes);
+        setNoNum(no);
+        setAbstrainedNum(ab);
+        setNotVotedNum(yes + no + ab);
+      }
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, open, adminOpen, updateFlag, ,]);
+  }, [selectedIndex, isReset, connected]);
   useEffect(() => {
     if (changeIndex) {
       setSelectedIndex(
@@ -240,8 +278,8 @@ export default function MainScene(props) {
     if (voteInfo == null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
-        if (voteInfo[i].user_id == userId) {
-          return voteInfo[i].decision;
+        if (voteInfo[i]?.user_id == userId) {
+          return voteInfo[i]?.decision;
         }
       }
       return 3;

@@ -35,26 +35,29 @@ export default function LoginScene() {
     setOpen(!open);
     setUpdateChange(!updateChange);
   });
-  socket.on("vote_Start", (id, agenda) => {
+  socket.on("vote_start", (id, agenda) => {
     setAgenda(agenda);
   });
   socket.on("vote_update", function (message, id, agenda) {
     setAgenda(agenda);
   });
 
-  socket.on("vote_close", function (data) {
+  socket.on("vote_close", function (id) {
     setOpen(false);
+    setAgendaId(id);
   });
-
-  // useEffect(() => {
-  //   if (agendaId) {
-  //     const getdata = async () => {
-  //       const res = await getAgenda2(agendaId);
-  //       setAgendaName(res.data.name);
-  //     };
-  //     getdata();
-  //   }
-  // }, [agendaId, updateChange]);
+  socket.on("vote_reset", function () {
+    setAgenda(null);
+  });
+  useEffect(() => {
+    if (agendaId) {
+      const getdata = async () => {
+        const res = await getAgenda2(agendaId);
+        setAgenda(res.data);
+      };
+      getdata();
+    }
+  }, [agendaId]);
   useEffect(() => {
     const getUsers = async () => {
       const resp = await getTvUsers();
@@ -66,10 +69,8 @@ export default function LoginScene() {
         acc[key].push(obj);
         return acc;
       }, {});
-
       const partyNames = Object.keys(partyGroup2);
       const partyUsers = Object.values(partyGroup2);
-
       setParty(partyNames);
       setUsers(partyUsers);
     };
@@ -77,10 +78,9 @@ export default function LoginScene() {
   }, []);
 
   useEffect(() => {
-    const getAgendasAndUsers = async () => {
+    const getAgenda = async () => {
       let tmp;
-      // const data = agendas.findIndex((obj) => obj._id === agendaId);
-      if (agenda?.vote_info && agenda?.vote_info !== "undefined") {
+      if (agenda && agenda?.vote_info && agenda?.vote_info !== "undefined") {
         tmp = JSON.parse(agenda?.vote_info);
       }
       setSelectedAgenda(tmp);
@@ -92,7 +92,7 @@ export default function LoginScene() {
         return;
       }
       const result = tmp?.reduce((acc, obj) => {
-        const key = obj.decision;
+        const key = obj?.decision;
         if (!acc[key]) {
           acc[key] = [];
         }
@@ -111,13 +111,13 @@ export default function LoginScene() {
       setAbstrainedNum(ab);
       setNotVotedNum(yes + no + ab);
     };
-    getAgendasAndUsers();
+    getAgenda();
   }, [agenda]);
   const getDecisionFromAgenda = (userId, voteInfo) => {
     if (voteInfo == null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
-        if (voteInfo[i].user_id == userId) {
+        if (voteInfo[i]?.user_id == userId) {
           return voteInfo[i].decision;
         }
       }
@@ -129,7 +129,7 @@ export default function LoginScene() {
       <div className="text-center row justify-content-center">
         <div className="col-md-6 border border-dark p-4">
           <div className="mb-4 bold-title" style={{ fontWeight: "bold" }}>
-            {agendaName}
+            {agenda?.name}
           </div>
           <div>
             <div className="flex flex-row w-full justify-around align-items-center bg-[#f5f5f5] rounded-[20px] p-[10px]">
@@ -188,7 +188,9 @@ export default function LoginScene() {
                               key={userItem._id}
                               decision={getDecisionFromAgenda(
                                 userItem._id,
-                                selectedAgenda
+                                agenda?.vote_info
+                                  ? JSON.parse(agenda?.vote_info)
+                                  : 3
                               )}
                               name={userItem.name}
                             />
