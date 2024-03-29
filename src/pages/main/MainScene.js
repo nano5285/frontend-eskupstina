@@ -27,7 +27,6 @@ export default function MainScene(props) {
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [emitAgendaIndex, setEmitAgendaIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [abstrainedNum, setAbstrainedNum] = useState(0);
@@ -67,11 +66,9 @@ export default function MainScene(props) {
     });
   }, []);
 
-  socket.on("message", function (data) {
-    setEmitAgendaIndex(data);
-  });
-  socket.on("vote_start", function (agendaId) {
+  socket.on("vote_start", function (agendaId, agenda) {
     setCurrentVotingAgenda(agendaId);
+    setVotingAgenda(agenda);
     setOpen(!open);
     setChangeIndex(true);
   });
@@ -492,7 +489,7 @@ export default function MainScene(props) {
       </div>
       <VoteAlert
         open={open}
-        agenda={agendas?.at(emitAgendaIndex)}
+        agenda={votingAgenda}
         handleOpen={changeVoteView}
       />
       {/* <ResultAlert open={resultOpen} resultData={resultData} handleClose={handleResultClose} /> */}
