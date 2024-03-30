@@ -56,6 +56,7 @@ export default function MainScene(props) {
       if (agendaId) {
         setCurrentVotingAgenda(agendaId);
         const res = await getAgenda();
+        setAgendas(res.data);
         res.data.forEach((item) => {
           if (item._id === agendaId) {
             const exists = JSON.parse(item.vote_info)?.some(
@@ -169,7 +170,7 @@ export default function MainScene(props) {
       return;
     }
     const result = tmp?.reduce((acc, obj) => {
-      if (obj) {
+      if (obj !== undefined && obj !== null) {
         const key = obj.decision;
         if (!acc[key]) {
           acc[key] = [];
@@ -177,6 +178,7 @@ export default function MainScene(props) {
         acc[key].push(obj);
         return acc;
       }
+      return acc;
     }, {});
 
     // Counting the number of objects for each decision
