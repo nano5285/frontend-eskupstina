@@ -336,10 +336,10 @@ export default function MainScene(props) {
                   display: "flex",
                   alignItems: "center",
                   marginBottom: "17px",
-                  marginTop: "0px",
+                  marginTop: "-24px",
                   justifyContent: "flex-start",
                   marginLeft: "40px",
-                  position: "absolute",
+                  position: "relative",
                 }}
               >
                 <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
