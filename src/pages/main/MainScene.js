@@ -134,6 +134,7 @@ export default function MainScene(props) {
   };
 
   const sendVoteClose = async () => {
+    await closeVote(startedVote);
     socket.emit("vote_update", "message", agendas[selectedIndex]._id);
     socket.emit(
       "vote_close",
@@ -144,7 +145,6 @@ export default function MainScene(props) {
       },
       agendas[selectedIndex]._id
     );
-    await closeVote(startedVote);
     setAdminOpen(false);
   };
 
