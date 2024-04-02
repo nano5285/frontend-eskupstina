@@ -48,6 +48,7 @@ export default function MainScene(props) {
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("userId");
   const [showLogout, setShowLogout] = useState(false);
+  const [voteClose, setVoteClose] = useState(false);
   socket.on("connect", function () {
     setConnected(true);
   });
@@ -83,6 +84,7 @@ export default function MainScene(props) {
 
   socket.on("vote_close", function (data) {
     setOpen(false);
+    setVoteClose(true);
   });
   socket.on("vote_reset", function (data) {
     setOpen(false);
@@ -152,7 +154,7 @@ export default function MainScene(props) {
     };
     await resetVote(resetData);
     setIsReset(!isReset);
-    socket.emit("vote_update", "message");
+    // socket.emit("vote_update", "message");
     socket.emit("vote_reset", "message", null);
   };
 
@@ -264,7 +266,7 @@ export default function MainScene(props) {
       }
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, connected]);
+  }, [selectedIndex, isReset, connected, voteClose]);
   useEffect(() => {
     if (changeIndex) {
       setSelectedIndex(

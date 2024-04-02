@@ -42,9 +42,10 @@ export default function LoginScene() {
     setAgenda(agenda);
   });
 
-  socket.on("vote_close", function (id) {
+  socket.on("vote_close", function (id, agenda) {
     setOpen(false);
     setAgendaId(id);
+    setAgenda(agenda);
   });
   socket.on("vote_reset", function () {
     setAgenda(null);
