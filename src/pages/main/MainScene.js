@@ -325,6 +325,13 @@ export default function MainScene(props) {
                       boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                       marginBottom: "2px",
                       cursor: "pointer",
+                      position: "absolute",
+                      right: "0",
+                      left: "0",
+                      top: "30px",
+                      height: "68px",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                     onClick={handleLogout}
                   >
@@ -347,22 +354,28 @@ export default function MainScene(props) {
                 <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
                 <span style={{ marginLeft: "8px" }}>{userName}</span>
               </div>{" "}
-              {agendas.map((item, index) => {
-                return (
-                  <CustomButton
-                    key={index}
-                    selected={index == selectedIndex}
-                    index={index + 1}
-                    locked={agendas[index].vote_state == 2}
-                    name={item.name}
-                    onClick={() => {
-                      setSelectedIndex(index);
-                      setChangeIndex(true);
-                      setSelectedAgendaPdf(agendas[index]?._id);
-                    }}
-                  ></CustomButton>
-                );
-              })}
+              <div
+                style={
+                  showLogout ? { marginTop: "70px" } : { marginTop: "0px" }
+                }
+              >
+                {agendas.map((item, index) => {
+                  return (
+                    <CustomButton
+                      key={index}
+                      selected={index == selectedIndex}
+                      index={index + 1}
+                      locked={agendas[index].vote_state == 2}
+                      name={item.name}
+                      onClick={() => {
+                        setSelectedIndex(index);
+                        setChangeIndex(true);
+                        setSelectedAgendaPdf(agendas[index]?._id);
+                      }}
+                    ></CustomButton>
+                  );
+                })}
+              </div>
             </div>
           )}
           <div
