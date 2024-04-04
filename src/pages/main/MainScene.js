@@ -4,6 +4,7 @@ import { socket } from "../../utils/socket";
 import VoteAlert from "../../components/VoteAlert";
 import {
   closeVote,
+  createAgenda,
   getAgenda,
   getUser,
   handleVote,
@@ -18,10 +19,15 @@ import { toast } from "react-toastify";
 import ZoomSvg from "../../assets/Zoom.svg";
 import PdfViewer from "../../components/CustomPdfViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSignOutAlt, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faSignOutAlt,
+  faUser,
+  faSquarePlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { Spinner } from "@react-pdf-viewer/core";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
@@ -49,6 +55,17 @@ export default function MainScene(props) {
   const currentUser = localStorage.getItem("userId");
   const [showLogout, setShowLogout] = useState(false);
   const [voteClose, setVoteClose] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [admin, setAdmin] = useState(false);
+  const [newAgenda, setNewAgenda] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    pdf_path: "",
+    agenda_type: "",
+  });
   socket.on("connect", function () {
     setConnected(true);
   });
@@ -201,6 +218,21 @@ export default function MainScene(props) {
     const getUsers = async () => {
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
+      // Check if the userId exists in localStorage
+      if (userId) {
+        // Find the user with the matching ID
+        const user = resp.data.find((user) => user._id === userId);
+
+        // Check if the user is found
+        if (user.role === "admin") {
+          // Return the user's role
+          setAdmin(true);
+          return;
+        } else {
+          // User with the provided ID not found
+          return;
+        }
+      }
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
         const key = obj.party;
         if (!acc[key]) {
@@ -266,7 +298,7 @@ export default function MainScene(props) {
       }
     };
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, connected, voteClose]);
+  }, [selectedIndex, isReset, connected, voteClose, newAgenda]);
   useEffect(() => {
     if (changeIndex) {
       setSelectedIndex(
@@ -300,8 +332,208 @@ export default function MainScene(props) {
   const toggleLogout = () => {
     setShowLogout(!showLogout);
   };
+
+  const handlePlusClick = () => {
+    setShowModal(!showModal); // Show modal when plus icon is clicked
+  };
+
+  // const handleCloseModal = () => {
+  //   setShowModal(false); // Close modal
+  // };
+  const handleInputChange = (event) => {
+    const { name, value, files } = event.target;
+    // Update formData state based on input changes
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: files ? files[0] : value,
+    }));
+  };
+  const handleSave = async () => {
+    const form = document.getElementById("agendaForm");
+    if (form.checkValidity()) {
+      setLoading(true);
+      try {
+        // Call createAgenda function
+        const result = await createAgenda(formData);
+        // Handle response
+        console.log("Agenda created:", result);
+        setFormData({
+          title: "",
+          description: "",
+          pdf_path: "",
+          agenda_type: "",
+        });
+        setLoading(false);
+        setShowModal(false);
+        setNewAgenda(true);
+        const modal = document.getElementById("myModal");
+        if (modal) {
+          modal.classList.remove("show");
+          modal.style.display = "none";
+          const modalBackdrop =
+            document.getElementsByClassName("modal-backdrop")[0];
+          if (modalBackdrop) {
+            modalBackdrop.parentNode.removeChild(modalBackdrop);
+          }
+        }
+      } catch (error) {
+        // Handle error
+        console.error("Error creating agenda:", error);
+      }
+    } else {
+      setError("Please fill out all required fields.");
+    }
+
+    // Close the modal after saving
+    // handleCloseModal();
+  };
   return (
     <div className="">
+      {showModal && (
+        <div className="modal fade" id="myModal" role="dialog">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <button
+                  type="button"
+                  className="close"
+                  data-dismiss="modal"
+                  onClick={handlePlusClick}
+                >
+                  &times;
+                </button>
+                <h4 className="modal-title">Add Agenda</h4>
+              </div>
+              <div className="modal-body">
+                <form
+                  className="form-horizontal"
+                  id="agendaForm"
+                  action="/action_page.php"
+                >
+                  <div className="form-group">
+                    <label className="control-label col-sm-2" htmlFor="title">
+                      Title:
+                    </label>
+                    <div className="col-sm-10">
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="title"
+                        name="title"
+                        placeholder="Add Title"
+                        onChange={handleInputChange}
+                        value={formData.title}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label
+                      className="control-label col-sm-2"
+                      htmlFor="description"
+                    >
+                      Description:
+                    </label>
+                    <div className="col-sm-10">
+                      <textarea
+                        className="form-control"
+                        id="description"
+                        name="description"
+                        placeholder="Add Description"
+                        onChange={handleInputChange}
+                        value={formData.description}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="control-label col-sm-2" htmlFor="type">
+                      Type:
+                    </label>
+                    <div className="col-sm-10">
+                      <div className="radio">
+                        <label>
+                          <input
+                            type="radio"
+                            name="agenda_type"
+                            value="pre_agenda"
+                            checked={formData.agenda_type === "pre_agenda"}
+                            onChange={handleInputChange}
+                            required
+                          />
+                          Pre Agenda
+                        </label>
+                      </div>
+                      <div className="radio">
+                        <label>
+                          <input
+                            type="radio"
+                            name="agenda_type"
+                            value="daily_agenda"
+                            checked={formData.agenda_type === "daily_agenda"}
+                            onChange={handleInputChange}
+                            required
+                          />
+                          Daily Agenda
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label
+                      className="control-label col-sm-2"
+                      htmlFor="document"
+                    >
+                      Document:
+                    </label>
+                    <div className="col-sm-10">
+                      <input
+                        type="file"
+                        className="form-control"
+                        id="document"
+                        name="pdf_path"
+                        placeholder="Add Document"
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                </form>
+                {error && <div className="alert alert-danger">{error}</div>}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-default"
+                  data-dismiss="modal"
+                  style={{
+                    height: "6rem",
+                    width: "10rem",
+                    color: "white",
+                    background: "red",
+                  }}
+                  onClick={handlePlusClick}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-default"
+                  onClick={handleSave}
+                  style={{
+                    height: "6rem",
+                    width: "10rem",
+                    color: "white",
+                    background: "green",
+                  }}
+                >
+                  {loading ? <Spinner /> : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className={`${
           isFullScreen ? "p-[20px]" : "p-[0px]"
@@ -311,7 +543,11 @@ export default function MainScene(props) {
           {isFullScreen && (
             <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
               <div style={{ position: "relative" }}>
-                <FontAwesomeIcon icon={faBars} onClick={toggleLogout} />
+                <FontAwesomeIcon
+                  icon={faBars}
+                  onClick={toggleLogout}
+                  className="cursor-pointer"
+                />
                 {showLogout && (
                   <div
                     id="logout"
@@ -346,14 +582,36 @@ export default function MainScene(props) {
                   alignItems: "center",
                   marginBottom: "17px",
                   marginTop: "-24px",
-                  justifyContent: "flex-start",
                   marginLeft: "40px",
                   position: "relative",
                 }}
               >
-                <FontAwesomeIcon icon={faUser} style={{ marginRight: "5px" }} />
-                <span style={{ marginLeft: "8px" }}>{userName}</span>
-              </div>{" "}
+                <div
+                  style={{ display: "flex", alignItems: "center", flexGrow: 1 }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    style={{ marginRight: "5px" }}
+                  />
+                  <span style={{ marginLeft: "8px" }}>{userName}</span>
+                </div>
+                {admin && (
+                  <button
+                    type="button"
+                    class="btn btn-lg"
+                    data-toggle="modal"
+                    data-target="#myModal"
+                  >
+                    <FontAwesomeIcon
+                      icon={faSquarePlus}
+                      size="lg"
+                      className="cursor-pointer"
+                      onClick={handlePlusClick}
+                    />
+                  </button>
+                )}
+              </div>
+
               <div
                 style={
                   showLogout ? { marginTop: "70px" } : { marginTop: "0px" }

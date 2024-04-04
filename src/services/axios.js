@@ -127,6 +127,24 @@ const closeVote = async (props) => {
   }
 };
 
+const createAgenda = async (props) => {
+  try {
+    const formData = new FormData();
+    formData.append("title", props.title);
+    formData.append("description", props.description);
+    formData.append("pdf_path", props.pdf_path);
+    formData.append("agenda_type", props.agenda_type);
+
+    const result = await axios.post("/api/agenda", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 const resetVote = async (props) => {
   try {
     var result = await axios.post("/api/reset_vote/", props, {
@@ -141,6 +159,7 @@ const resetVote = async (props) => {
 };
 
 export {
+  createAgenda,
   signInUser,
   getAgenda,
   getAgenda2,
