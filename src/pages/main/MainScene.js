@@ -227,10 +227,6 @@ export default function MainScene(props) {
         if (user.role === "admin") {
           // Return the user's role
           setAdmin(true);
-          return;
-        } else {
-          // User with the provided ID not found
-          return;
         }
       }
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
