@@ -60,6 +60,8 @@ export default function MainScene(props) {
   const [error, setError] = useState("");
   const [admin, setAdmin] = useState(false);
   const [newAgenda, setNewAgenda] = useState(false);
+  const [preAgenda, setPreAgenda] = useState([]);
+  const [dailyAgenda, setDailyAgenda] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -75,10 +77,18 @@ export default function MainScene(props) {
         setCurrentVotingAgenda(agendaId);
         const res = await getAgenda();
         setAgendas(res.data);
+        const preAgendas = res?.data.filter(
+          (agenda) => agenda.agenda_type === "pre_agenda"
+        );
+        const dailyAgendas = res?.data.filter(
+          (agenda) => agenda.agenda_type === "daily_agenda"
+        );
+        setPreAgenda(preAgendas);
+        setDailyAgenda(dailyAgendas);
         res.data.forEach((item) => {
           if (item._id === agendaId) {
             const exists = JSON.parse(item.vote_info)?.some(
-              (element) => element.user_id === localStorage.getItem("userId")
+              (element) => element?.user_id === localStorage.getItem("userId")
             );
             if (!exists) setOpen(true);
           }
@@ -250,8 +260,16 @@ export default function MainScene(props) {
   useEffect(() => {
     const getAgendasAndUsers = async () => {
       const res = await getAgenda();
+      const preAgendas = res?.data.filter(
+        (agenda) => agenda.agenda_type === "pre_agenda"
+      );
+      const dailyAgendas = res?.data.filter(
+        (agenda) => agenda.agenda_type === "daily_agenda"
+      );
+      setPreAgenda(preAgendas);
+      setDailyAgenda(dailyAgendas);
       setAgendas(res.data);
-      setSelectedAgendaPdf(res.data[selectedIndex]._id);
+      setSelectedAgendaPdf(res.data[selectedIndex]?._id);
 
       let tmp;
       if (
@@ -616,18 +634,62 @@ export default function MainScene(props) {
                   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
                 }
               >
-                {agendas.map((item, index) => {
+                <div>
+                  <div> Pre Agenda</div>
+                  <div
+                    style={{
+                      borderTop:
+                        "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                      marginBottom: "5px",
+                    }}
+                  ></div>
+                </div>
+                {preAgenda.map((item, index) => {
                   return (
                     <CustomButton
                       key={index}
                       selected={index == selectedIndex}
                       index={index + 1}
-                      locked={agendas[index].vote_state == 2}
+                      locked={preAgenda[index].vote_state == 2}
                       name={item.name}
                       onClick={() => {
                         setSelectedIndex(index);
                         setChangeIndex(true);
-                        setSelectedAgendaPdf(agendas[index]?._id);
+                        setSelectedAgendaPdf(preAgenda[index]?._id);
+                      }}
+                    ></CustomButton>
+                  );
+                })}
+              </div>
+              <div
+                style={
+                  showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                }
+              >
+                {dailyAgenda.length && (
+                  <div>
+                    <div> Daily Agenda</div>
+                    <div
+                      style={{
+                        borderTop:
+                          "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                        marginBottom: "5px",
+                      }}
+                    ></div>
+                  </div>
+                )}
+                {dailyAgenda.map((item, index) => {
+                  return (
+                    <CustomButton
+                      key={index}
+                      selected={preAgenda.length + index == selectedIndex}
+                      index={index + 1}
+                      locked={dailyAgenda[index].vote_state == 2}
+                      name={item.name}
+                      onClick={() => {
+                        setSelectedIndex(preAgenda.length + index);
+                        setChangeIndex(true);
+                        setSelectedAgendaPdf(agendas[selectedIndex]?._id);
                       }}
                     ></CustomButton>
                   );
