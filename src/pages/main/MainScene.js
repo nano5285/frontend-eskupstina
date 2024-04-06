@@ -333,9 +333,6 @@ export default function MainScene(props) {
     setShowModal(!showModal); // Show modal when plus icon is clicked
   };
 
-  // const handleCloseModal = () => {
-  //   setShowModal(false); // Close modal
-  // };
   const handleInputChange = (event) => {
     const { name, value, files } = event.target;
     // Update formData state based on input changes
@@ -538,7 +535,15 @@ export default function MainScene(props) {
         <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
           {isFullScreen && (
             <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
-              <div style={{ position: "relative" }}>
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "baseline",
+                  justifyContent: "space-between",
+                  marginBottom: "5px",
+                }}
+              >
                 <FontAwesomeIcon
                   icon={faBars}
                   onClick={toggleLogout}
@@ -571,46 +576,44 @@ export default function MainScene(props) {
                     <button className="btn ml-2">Logout</button>
                   </div>
                 )}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: "17px",
-                  marginTop: "-24px",
-                  marginLeft: "40px",
-                  position: "relative",
-                }}
-              >
                 <div
-                  style={{ display: "flex", alignItems: "center", flexGrow: 1 }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    position: "relative",
+                  }}
                 >
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    style={{ marginRight: "5px" }}
-                  />
-                  <span style={{ marginLeft: "8px" }}>{userName}</span>
-                </div>
-                {admin && (
-                  <button
-                    type="button"
-                    class="btn btn-lg"
-                    data-toggle="modal"
-                    data-target="#myModal"
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexGrow: 1,
+                    }}
                   >
                     <FontAwesomeIcon
-                      icon={faSquarePlus}
-                      size="lg"
-                      className="cursor-pointer"
-                      onClick={handlePlusClick}
+                      icon={faUser}
+                      style={{ marginRight: "5px" }}
                     />
-                  </button>
-                )}
+                    <span style={{ marginLeft: "8px" }}>{userName}</span>
+                  </div>
+                </div>
+                <div>
+                  {admin && (
+                    <button data-toggle="modal" data-target="#myModal">
+                      <FontAwesomeIcon
+                        icon={faSquarePlus}
+                        size="lg"
+                        className="cursor-pointer"
+                        onClick={handlePlusClick}
+                      />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div
                 style={
-                  showLogout ? { marginTop: "70px" } : { marginTop: "0px" }
+                  showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
                 }
               >
                 {agendas.map((item, index) => {
