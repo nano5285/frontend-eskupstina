@@ -132,9 +132,9 @@ export default function LoginScene() {
     }
   };
   return (
-    <div className="container-fluid main-box mt-4 ml-12 mr-12">
+    <div className="mt-4 ml-12 mr-12">
       <div className="text-center row justify-content-center">
-        <div className="col-md-6 border border-dark p-4">
+        <div className="border border-dark p-4">
           <div className="mb-4 bold-title" style={{ fontWeight: "bold" }}>
             {agenda?.name}
           </div>

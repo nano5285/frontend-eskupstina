@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { Spinner } from "@react-pdf-viewer/core";
+import AgendaDialog from "../../components/AgendaDialog";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
@@ -347,7 +348,13 @@ export default function MainScene(props) {
     setShowLogout(!showLogout);
   };
 
-  const handlePlusClick = () => {
+  const cancelAgenda = () => {
+    setFormData({
+      title: "",
+      description: "",
+      pdf_path: "",
+      agenda_type: "",
+    });
     setShowModal(!showModal); // Show modal when plus icon is clicked
   };
 
@@ -401,149 +408,156 @@ export default function MainScene(props) {
   return (
     <div className="">
       {showModal && (
-        <div className="modal fade" id="myModal" role="dialog">
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <button
-                  type="button"
-                  className="close"
-                  data-dismiss="modal"
-                  onClick={handlePlusClick}
-                >
-                  &times;
-                </button>
-                <h4 className="modal-title">Add Agenda</h4>
-              </div>
-              <div className="modal-body">
-                <form
-                  className="form-horizontal"
-                  id="agendaForm"
-                  action="/action_page.php"
-                >
-                  <div className="form-group">
-                    <label className="control-label col-sm-2" htmlFor="title">
-                      Title:
-                    </label>
-                    <div className="col-sm-10">
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="title"
-                        name="title"
-                        placeholder="Add Title"
-                        onChange={handleInputChange}
-                        value={formData.title}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label
-                      className="control-label col-sm-2"
-                      htmlFor="description"
-                    >
-                      Description:
-                    </label>
-                    <div className="col-sm-10">
-                      <textarea
-                        className="form-control"
-                        id="description"
-                        name="description"
-                        placeholder="Add Description"
-                        onChange={handleInputChange}
-                        value={formData.description}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="control-label col-sm-2" htmlFor="type">
-                      Type:
-                    </label>
-                    <div className="col-sm-10">
-                      <div className="radio">
-                        <label>
-                          <input
-                            type="radio"
-                            name="agenda_type"
-                            value="pre_agenda"
-                            checked={formData.agenda_type === "pre_agenda"}
-                            onChange={handleInputChange}
-                            required
-                          />
-                          Pre Agenda
-                        </label>
-                      </div>
-                      <div className="radio">
-                        <label>
-                          <input
-                            type="radio"
-                            name="agenda_type"
-                            value="daily_agenda"
-                            checked={formData.agenda_type === "daily_agenda"}
-                            onChange={handleInputChange}
-                            required
-                          />
-                          Daily Agenda
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label
-                      className="control-label col-sm-2"
-                      htmlFor="document"
-                    >
-                      Document:
-                    </label>
-                    <div className="col-sm-10">
-                      <input
-                        type="file"
-                        className="form-control"
-                        id="document"
-                        name="pdf_path"
-                        placeholder="Add Document"
-                        onChange={handleInputChange}
-                        required
-                      />
-                    </div>
-                  </div>
-                </form>
-                {error && <div className="alert alert-danger">{error}</div>}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-default"
-                  data-dismiss="modal"
-                  style={{
-                    height: "6rem",
-                    width: "10rem",
-                    color: "white",
-                    background: "red",
-                  }}
-                  onClick={handlePlusClick}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-default"
-                  onClick={handleSave}
-                  style={{
-                    height: "6rem",
-                    width: "10rem",
-                    color: "white",
-                    background: "green",
-                  }}
-                >
-                  {loading ? <Spinner /> : "Save"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AgendaDialog
+          formData={formData}
+          open={showModal}
+          cancelAgenda={cancelAgenda}
+          handleInputChange={handleInputChange}
+          handleSave={handleSave}
+        ></AgendaDialog>
+        // <div className="modal fade" id="myModal" role="dialog">
+        //   <div className="modal-dialog">
+        //     <div className="modal-content">
+        //       <div className="modal-header">
+        //         <button
+        //           type="button"
+        //           className="close"
+        //           data-dismiss="modal"
+        //           onClick={handlePlusClick}
+        //         >
+        //           &times;
+        //         </button>
+        //         <h4 className="modal-title">Add Agenda</h4>
+        //       </div>
+        //       <div className="modal-body">
+        //         <form
+        //           className="form-horizontal"
+        //           id="agendaForm"
+        //           action="/action_page.php"
+        //         >
+        //           <div className="form-group">
+        //             <label className="control-label col-sm-2" htmlFor="title">
+        //               Title:
+        //             </label>
+        //             <div className="col-sm-10">
+        //               <input
+        //                 type="text"
+        //                 className="form-control"
+        //                 id="title"
+        //                 name="title"
+        //                 placeholder="Add Title"
+        //                 onChange={handleInputChange}
+        //                 value={formData.title}
+        //                 required
+        //               />
+        //             </div>
+        //           </div>
+        //           <div className="form-group">
+        //             <label
+        //               className="control-label col-sm-2"
+        //               htmlFor="description"
+        //             >
+        //               Description:
+        //             </label>
+        //             <div className="col-sm-10">
+        //               <textarea
+        //                 className="form-control"
+        //                 id="description"
+        //                 name="description"
+        //                 placeholder="Add Description"
+        //                 onChange={handleInputChange}
+        //                 value={formData.description}
+        //                 required
+        //               />
+        //             </div>
+        //           </div>
+        //           <div className="form-group">
+        //             <label className="control-label col-sm-2" htmlFor="type">
+        //               Type:
+        //             </label>
+        //             <div className="col-sm-10">
+        //               <div className="radio">
+        //                 <label>
+        //                   <input
+        //                     type="radio"
+        //                     name="agenda_type"
+        //                     value="pre_agenda"
+        //                     checked={formData.agenda_type === "pre_agenda"}
+        //                     onChange={handleInputChange}
+        //                     required
+        //                   />
+        //                   Pre Agenda
+        //                 </label>
+        //               </div>
+        //               <div className="radio">
+        //                 <label>
+        //                   <input
+        //                     type="radio"
+        //                     name="agenda_type"
+        //                     value="daily_agenda"
+        //                     checked={formData.agenda_type === "daily_agenda"}
+        //                     onChange={handleInputChange}
+        //                     required
+        //                   />
+        //                   Daily Agenda
+        //                 </label>
+        //               </div>
+        //             </div>
+        //           </div>
+        //           <div className="form-group">
+        //             <label
+        //               className="control-label col-sm-2"
+        //               htmlFor="document"
+        //             >
+        //               Document:
+        //             </label>
+        //             <div className="col-sm-10">
+        //               <input
+        //                 type="file"
+        //                 className="form-control"
+        //                 id="document"
+        //                 name="pdf_path"
+        //                 placeholder="Add Document"
+        //                 onChange={handleInputChange}
+        //                 required
+        //               />
+        //             </div>
+        //           </div>
+        //         </form>
+        //         {error && <div className="alert alert-danger">{error}</div>}
+        //       </div>
+        //       <div className="modal-footer">
+        //         <button
+        //           type="button"
+        //           className="btn btn-default"
+        //           data-dismiss="modal"
+        //           style={{
+        //             height: "6rem",
+        //             width: "10rem",
+        //             color: "white",
+        //             background: "red",
+        //           }}
+        //           onClick={handlePlusClick}
+        //         >
+        //           Cancel
+        //         </button>
+        //         <button
+        //           type="button"
+        //           className="btn btn-default"
+        //           onClick={handleSave}
+        //           style={{
+        //             height: "6rem",
+        //             width: "10rem",
+        //             color: "white",
+        //             background: "green",
+        //           }}
+        //         >
+        //           {loading ? <Spinner /> : "Save"}
+        //         </button>
+        //       </div>
+        //     </div>
+        //   </div>
+        // </div>
       )}
       <div
         className={`${
@@ -622,7 +636,7 @@ export default function MainScene(props) {
                         icon={faSquarePlus}
                         size="lg"
                         className="cursor-pointer"
-                        onClick={handlePlusClick}
+                        onClick={cancelAgenda}
                       />
                     </button>
                   )}
