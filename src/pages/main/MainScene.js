@@ -6,6 +6,7 @@ import {
   closeVote,
   createAgenda,
   getAgenda,
+  getAgenda2,
   getUser,
   handleVote,
   resetVote,
@@ -27,14 +28,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { Spinner } from "@react-pdf-viewer/core";
 import AgendaDialog from "../../components/AgendaDialog";
+import isEqual from "lodash/isEqual";
 export default function MainScene(props) {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [abstrainedNum, setAbstrainedNum] = useState(0);
@@ -63,7 +63,6 @@ export default function MainScene(props) {
   const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
   const [dailyAgenda, setDailyAgenda] = useState([]);
-  const [selectedIndexId, setSelectedIndexId] = useState("");
   const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
   const [getUpdate, setGetUpdate] = useState(false);
   const [formData, setFormData] = useState({
@@ -72,8 +71,8 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
-  socket.on("connect", function () {
-    setConnected(true);
+  socket.on("disconnect", function () {
+    setConnected(!connected);
   });
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
@@ -106,11 +105,49 @@ export default function MainScene(props) {
     setVotingAgenda(agenda);
     setOpen(!open);
     setChangeIndex(true);
+    setGetUpdate(!getUpdate);
   });
 
   socket.on("vote_update", function (message, agendaId, agenda) {
     setVotingAgenda(agenda);
     setUpdateFlag(!updateFlag);
+    let tmp = null;
+    if (agenda?.vote_info && agenda?.vote_info !== "undefined") {
+      tmp = JSON.parse(agenda.vote_info);
+    }
+    setSelectedAgenda(tmp);
+    if (tmp == null) {
+      setYesNum(0);
+      setNoNum(0);
+      setAbstrainedNum(0);
+      setNotVotedNum(0);
+      return;
+    }
+    // Counting the number of votes for each decision
+    const result = tmp?.reduce((acc, obj) => {
+      if (obj !== undefined && obj !== null) {
+        const key = obj.decision;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+      }
+      return acc;
+    }, {});
+
+    // Counting the number of objects for each decision
+    if (result) {
+      const yes = result["1"] ? result["1"].length : 0;
+      const no = result["0"] ? result["0"].length : 0;
+      const ab = result["2"] ? result["2"].length : 0;
+
+      // Setting the state variables
+      setYesNum(yes);
+      setNoNum(no);
+      setAbstrainedNum(ab);
+      setNotVotedNum(yes + no + ab);
+    }
   });
 
   socket.on("vote_close", function (data) {
@@ -120,10 +157,7 @@ export default function MainScene(props) {
   socket.on("vote_reset", function (data) {
     setOpen(false);
     setVotingAgenda(null);
-  });
-
-  socket.on("disconnect", function () {
-    setConnected(false);
+    setGetUpdate(!getUpdate);
   });
 
   const changeVoteView = async (param) => {
@@ -256,7 +290,52 @@ export default function MainScene(props) {
     };
     getUsers();
   }, []);
+  useEffect(() => {
+    const getAgendaById = async () => {
+      const res = await getAgenda2(selectedIndexAgenda._id);
+      let tmp = null;
+      if (!isEqual(res.data, selectedIndexAgenda)) {
+        setSelectedIndexAgenda(res.data);
+      }
+      if (res.data?.vote_info && res.data?.vote_info !== "undefined") {
+        tmp = JSON.parse(res.data.vote_info);
+      }
+      setSelectedAgenda(tmp);
+      if (tmp == null) {
+        setYesNum(0);
+        setNoNum(0);
+        setAbstrainedNum(0);
+        setNotVotedNum(0);
+        return;
+      }
+      // Counting the number of votes for each decision
+      const result = tmp?.reduce((acc, obj) => {
+        if (obj !== undefined && obj !== null) {
+          const key = obj.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
+        }
+        return acc;
+      }, {});
 
+      // Counting the number of objects for each decision
+      if (result) {
+        const yes = result["1"] ? result["1"].length : 0;
+        const no = result["0"] ? result["0"].length : 0;
+        const ab = result["2"] ? result["2"].length : 0;
+
+        // Setting the state variables
+        setYesNum(yes);
+        setNoNum(no);
+        setAbstrainedNum(ab);
+        setNotVotedNum(yes + no + ab);
+      }
+    };
+    getAgendaById();
+  }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
   useEffect(() => {
     const getAgendasAndUsers = async () => {
       try {
@@ -341,7 +420,7 @@ export default function MainScene(props) {
 
     // Call the function to fetch agendas and update states
     getAgendasAndUsers();
-  }, [getUpdate, isReset, connected, voteClose, newAgenda]);
+  }, [getUpdate, isReset, newAgenda]);
 
   const checkAgendaState = () => {
     return selectedIndexAgenda.vote_state;
@@ -542,7 +621,7 @@ export default function MainScene(props) {
                       key={index}
                       selected={item._id == selectedIndexAgenda._id}
                       index={index + 1}
-                      locked={preAgenda[index].vote_state == 2}
+                      locked={item.vote_state == 2}
                       name={item.name}
                       onClick={() => {
                         setChangeIndex(true);
