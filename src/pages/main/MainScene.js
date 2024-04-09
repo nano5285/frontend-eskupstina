@@ -63,6 +63,9 @@ export default function MainScene(props) {
   const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
   const [dailyAgenda, setDailyAgenda] = useState([]);
+  const [selectedIndexId, setSelectedIndexId] = useState("");
+  const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
+  const [getUpdate, setGetUpdate] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -130,7 +133,7 @@ export default function MainScene(props) {
     setOpen(!open);
     const voteData = {
       user_id: currentUser,
-      agenda_id: agendas[selectedIndex]._id,
+      agenda_id: selectedIndexAgenda._id,
       decision: param,
     };
 
@@ -138,7 +141,7 @@ export default function MainScene(props) {
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    socket.emit("vote_update", "message", agendas[selectedIndex]._id, voteData);
+    socket.emit("vote_update", "message", selectedIndexAgenda._id, voteData);
     if (!connected) {
       let res = await handleVote(voteData);
     }
@@ -150,20 +153,16 @@ export default function MainScene(props) {
       return;
     }
     const startVoteData = {
-      agenda_item_id: agendas[selectedIndex]._id,
+      agenda_item_id: selectedIndexAgenda._id,
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit(
-      "vote_start",
-      agendas[selectedIndex]._id,
-      agendas[selectedIndex]
-    );
+    socket.emit("vote_start", selectedIndexAgenda._id, selectedIndexAgenda);
   };
 
   const sendVoteClose = async () => {
     await closeVote(startedVote);
-    socket.emit("vote_update", "message", agendas[selectedIndex]._id);
+    socket.emit("vote_update", "message", selectedIndexAgenda._id);
     socket.emit(
       "vote_close",
       {
@@ -171,14 +170,14 @@ export default function MainScene(props) {
         noNum: noNum,
         abstrainedNum: abstrainedNum,
       },
-      agendas[selectedIndex]._id
+      selectedIndexAgenda._id
     );
     setAdminOpen(false);
   };
 
   const sendVoteReset = async () => {
     const resetData = {
-      agenda_id: agendas[selectedIndex]?._id,
+      agenda_id: selectedIndexAgenda._id,
     };
     await resetVote(resetData);
     setIsReset(!isReset);
@@ -260,70 +259,92 @@ export default function MainScene(props) {
 
   useEffect(() => {
     const getAgendasAndUsers = async () => {
-      const res = await getAgenda();
-      const preAgendas = res?.data.filter(
-        (agenda) => agenda.agenda_type === "pre_agenda"
-      );
-      const dailyAgendas = res?.data.filter(
-        (agenda) => agenda.agenda_type === "daily_agenda"
-      );
-      setPreAgenda(preAgendas);
-      setDailyAgenda(dailyAgendas);
-      setAgendas(res.data);
-      setSelectedAgendaPdf(res.data[selectedIndex]?._id);
+      try {
+        const res = await getAgenda();
+        const agendas = res?.data || [];
 
-      let tmp;
-      if (
-        res.data[selectedIndex]?.vote_info &&
-        res.data[selectedIndex]?.vote_info !== "undefined"
-      ) {
-        tmp = JSON.parse(res.data[selectedIndex]?.vote_info);
-      }
-      setSelectedAgenda(tmp);
-      if (tmp == null) {
-        setYesNum(0);
-        setNoNum(0);
-        setAbstrainedNum(0);
-        setNotVotedNum(0);
-        return;
-      }
-      const result = tmp?.reduce((acc, obj) => {
-        if (obj !== null && obj !== undefined) {
-          const key = obj.decision;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(obj);
-          return acc;
+        // Separate agendas into preAgendas and dailyAgendas
+        const preAgendas = agendas.filter(
+          (agenda) => agenda.agenda_type === "pre_agenda"
+        );
+        const dailyAgendas = agendas.filter(
+          (agenda) => agenda.agenda_type === "daily_agenda"
+        );
+
+        // Update preAgenda and dailyAgenda states
+        setPreAgenda(preAgendas);
+        setDailyAgenda(dailyAgendas);
+        setAgendas(agendas);
+        let updatedAgenda;
+        // Select default selectedIndexAgenda if not already set
+        if (
+          Object.keys(selectedIndexAgenda).length === 0 &&
+          preAgendas.length > 0
+        ) {
+          setSelectedIndexAgenda(preAgendas[0]);
+          setSelectedAgendaPdf(preAgendas[0]._id);
+          updatedAgenda = preAgendas[0];
+        } else {
+          // Find selectedIndexAgenda in the updated agendas list
+          updatedAgenda = agendas.find(
+            (agenda) => agenda._id === selectedIndexAgenda._id
+          );
+          setSelectedIndexAgenda(updatedAgenda || {});
+          setSelectedAgendaPdf(updatedAgenda?._id || "");
         }
-        return acc;
-      }, {});
 
-      // Counting the number of objects for each decision
-      if (result) {
-        const yes = result["1"] ? result["1"].length : 0;
-        const no = result["0"] ? result["0"].length : 0;
-        const ab = result["2"] ? result["2"].length : 0;
+        // Parse and update vote statistics
+        let tmp = null;
+        if (
+          updatedAgenda?.vote_info &&
+          updatedAgenda?.vote_info !== "undefined"
+        ) {
+          tmp = JSON.parse(updatedAgenda.vote_info);
+        }
+        setSelectedAgenda(tmp);
+        if (tmp == null) {
+          setYesNum(0);
+          setNoNum(0);
+          setAbstrainedNum(0);
+          setNotVotedNum(0);
+          return;
+        }
+        // Counting the number of votes for each decision
+        const result = tmp?.reduce((acc, obj) => {
+          if (obj !== undefined && obj !== null) {
+            const key = obj.decision;
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            acc[key].push(obj);
+            return acc;
+          }
+          return acc;
+        }, {});
 
-        // Setting the state variables
-        setYesNum(yes);
-        setNoNum(no);
-        setAbstrainedNum(ab);
-        setNotVotedNum(yes + no + ab);
+        // Counting the number of objects for each decision
+        if (result) {
+          const yes = result["1"] ? result["1"].length : 0;
+          const no = result["0"] ? result["0"].length : 0;
+          const ab = result["2"] ? result["2"].length : 0;
+
+          // Setting the state variables
+          setYesNum(yes);
+          setNoNum(no);
+          setAbstrainedNum(ab);
+          setNotVotedNum(yes + no + ab);
+        }
+      } catch (error) {
+        console.error("Error fetching agendas:", error);
       }
     };
+
+    // Call the function to fetch agendas and update states
     getAgendasAndUsers();
-  }, [selectedIndex, isReset, connected, voteClose, newAgenda]);
-  useEffect(() => {
-    if (changeIndex) {
-      setSelectedIndex(
-        agendas.findIndex((element) => element._id == currentVotingAgenda)
-      );
-      setChangeIndex(false);
-    }
-  }, [currentVotingAgenda]);
+  }, [getUpdate, isReset, connected, voteClose, newAgenda]);
+
   const checkAgendaState = () => {
-    return agendas[selectedIndex].vote_state;
+    return selectedIndexAgenda.vote_state;
   };
 
   const getDecisionFromAgenda = (userId, voteInfo) => {
@@ -415,149 +436,6 @@ export default function MainScene(props) {
           handleInputChange={handleInputChange}
           handleSave={handleSave}
         ></AgendaDialog>
-        // <div className="modal fade" id="myModal" role="dialog">
-        //   <div className="modal-dialog">
-        //     <div className="modal-content">
-        //       <div className="modal-header">
-        //         <button
-        //           type="button"
-        //           className="close"
-        //           data-dismiss="modal"
-        //           onClick={handlePlusClick}
-        //         >
-        //           &times;
-        //         </button>
-        //         <h4 className="modal-title">Add Agenda</h4>
-        //       </div>
-        //       <div className="modal-body">
-        //         <form
-        //           className="form-horizontal"
-        //           id="agendaForm"
-        //           action="/action_page.php"
-        //         >
-        //           <div className="form-group">
-        //             <label className="control-label col-sm-2" htmlFor="title">
-        //               Title:
-        //             </label>
-        //             <div className="col-sm-10">
-        //               <input
-        //                 type="text"
-        //                 className="form-control"
-        //                 id="title"
-        //                 name="title"
-        //                 placeholder="Add Title"
-        //                 onChange={handleInputChange}
-        //                 value={formData.title}
-        //                 required
-        //               />
-        //             </div>
-        //           </div>
-        //           <div className="form-group">
-        //             <label
-        //               className="control-label col-sm-2"
-        //               htmlFor="description"
-        //             >
-        //               Description:
-        //             </label>
-        //             <div className="col-sm-10">
-        //               <textarea
-        //                 className="form-control"
-        //                 id="description"
-        //                 name="description"
-        //                 placeholder="Add Description"
-        //                 onChange={handleInputChange}
-        //                 value={formData.description}
-        //                 required
-        //               />
-        //             </div>
-        //           </div>
-        //           <div className="form-group">
-        //             <label className="control-label col-sm-2" htmlFor="type">
-        //               Type:
-        //             </label>
-        //             <div className="col-sm-10">
-        //               <div className="radio">
-        //                 <label>
-        //                   <input
-        //                     type="radio"
-        //                     name="agenda_type"
-        //                     value="pre_agenda"
-        //                     checked={formData.agenda_type === "pre_agenda"}
-        //                     onChange={handleInputChange}
-        //                     required
-        //                   />
-        //                   Pre Agenda
-        //                 </label>
-        //               </div>
-        //               <div className="radio">
-        //                 <label>
-        //                   <input
-        //                     type="radio"
-        //                     name="agenda_type"
-        //                     value="daily_agenda"
-        //                     checked={formData.agenda_type === "daily_agenda"}
-        //                     onChange={handleInputChange}
-        //                     required
-        //                   />
-        //                   Daily Agenda
-        //                 </label>
-        //               </div>
-        //             </div>
-        //           </div>
-        //           <div className="form-group">
-        //             <label
-        //               className="control-label col-sm-2"
-        //               htmlFor="document"
-        //             >
-        //               Document:
-        //             </label>
-        //             <div className="col-sm-10">
-        //               <input
-        //                 type="file"
-        //                 className="form-control"
-        //                 id="document"
-        //                 name="pdf_path"
-        //                 placeholder="Add Document"
-        //                 onChange={handleInputChange}
-        //                 required
-        //               />
-        //             </div>
-        //           </div>
-        //         </form>
-        //         {error && <div className="alert alert-danger">{error}</div>}
-        //       </div>
-        //       <div className="modal-footer">
-        //         <button
-        //           type="button"
-        //           className="btn btn-default"
-        //           data-dismiss="modal"
-        //           style={{
-        //             height: "6rem",
-        //             width: "10rem",
-        //             color: "white",
-        //             background: "red",
-        //           }}
-        //           onClick={handlePlusClick}
-        //         >
-        //           Cancel
-        //         </button>
-        //         <button
-        //           type="button"
-        //           className="btn btn-default"
-        //           onClick={handleSave}
-        //           style={{
-        //             height: "6rem",
-        //             width: "10rem",
-        //             color: "white",
-        //             background: "green",
-        //           }}
-        //         >
-        //           {loading ? <Spinner /> : "Save"}
-        //         </button>
-        //       </div>
-        //     </div>
-        //   </div>
-        // </div>
       )}
       <div
         className={`${
@@ -662,13 +540,14 @@ export default function MainScene(props) {
                   return (
                     <CustomButton
                       key={index}
-                      selected={index == selectedIndex}
+                      selected={item._id == selectedIndexAgenda._id}
                       index={index + 1}
                       locked={preAgenda[index].vote_state == 2}
                       name={item.name}
                       onClick={() => {
-                        setSelectedIndex(index);
                         setChangeIndex(true);
+                        setGetUpdate(!getUpdate);
+                        setSelectedIndexAgenda(preAgenda[index]);
                         setSelectedAgendaPdf(preAgenda[index]?._id);
                       }}
                     ></CustomButton>
@@ -696,14 +575,14 @@ export default function MainScene(props) {
                   return (
                     <CustomButton
                       key={index}
-                      selected={preAgenda.length + index == selectedIndex}
+                      selected={item._id == selectedIndexAgenda._id}
                       index={index + 1}
                       locked={dailyAgenda[index].vote_state == 2}
                       name={item.name}
                       onClick={() => {
-                        setSelectedIndex(preAgenda.length + index);
                         setChangeIndex(true);
-                        setSelectedAgendaPdf(agendas[selectedIndex]?._id);
+                        setSelectedIndexAgenda(dailyAgenda[index]);
+                        setSelectedAgendaPdf(dailyAgenda[index]?._id);
                       }}
                     ></CustomButton>
                   );
