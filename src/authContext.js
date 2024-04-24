@@ -12,8 +12,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
     setIsLoggedIn(false);
   };
 

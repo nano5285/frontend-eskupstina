@@ -19,8 +19,6 @@ export default function LoginScene() {
     const res = await signInUser(signInData);
     if (res.success) {
       login();
-      localStorage.setItem("role", res.role);
-      localStorage.setItem("userId", res.id);
       navigate("/main", {
         state: { role: res.role, userId: res.id },
       });
