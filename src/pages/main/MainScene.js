@@ -30,7 +30,7 @@ import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import AgendaDialog from "../../components/AgendaDialog";
 import isEqual from "lodash/isEqual";
-export default function MainScene(props) {
+export default function MainScene() {
   const { state } = useLocation();
   const [agendas, setAgendas] = useState([]);
   const [party, setParty] = useState([]);
@@ -71,6 +71,9 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
+
+  const userrole = localStorage.getItem("role");
+
   socket.on("disconnect", function () {
     setConnected(!connected);
   });
@@ -107,6 +110,8 @@ export default function MainScene(props) {
     setChangeIndex(true);
     setGetUpdate(!getUpdate);
   });
+
+  console.log("state", state);
 
   socket.on("vote_update", function (message, agendaId, agenda) {
     setVotingAgenda(agenda);
@@ -150,18 +155,18 @@ export default function MainScene(props) {
     }
   });
 
-  socket.on("vote_close", function (data) {
+  socket.on("vote_close", function () {
     setOpen(false);
     setVoteClose(true);
   });
-  socket.on("vote_reset", function (data) {
+  socket.on("vote_reset", function () {
     setOpen(false);
     setVotingAgenda(null);
     setGetUpdate(!getUpdate);
   });
 
   const changeVoteView = async (param) => {
-    if (state?.role == "admin") {
+    if (userrole === "admin") {
       setAdminOpen(!adminOpen);
     }
     setOpen(!open);
@@ -177,12 +182,11 @@ export default function MainScene(props) {
     );
     socket.emit("vote_update", "message", selectedIndexAgenda._id, voteData);
     if (!connected) {
-      let res = await handleVote(voteData);
     }
   };
 
   const sendVoteStart = async () => {
-    if (checkAgendaState() == 2) {
+    if (checkAgendaState() === 2) {
       toast("Voting already closed!");
       return;
     }
@@ -760,10 +764,8 @@ export default function MainScene(props) {
                   );
                 })}
               </div>
-              {state?.role == "admin" && (
-                <div className="w-full h-[120px]"></div>
-              )}
-              {state?.role == "admin" && (
+              {userrole === "admin" && <div className="w-full h-[120px]"></div>}
+              {userrole === "admin" && (
                 <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
                   <Button
                     className=" w-[120px] bg-[green] text-[12px]"
