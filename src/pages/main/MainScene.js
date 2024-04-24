@@ -71,7 +71,7 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
-  socket.on("disconnect", function () {
+  socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
   useEffect(() => {
