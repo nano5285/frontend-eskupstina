@@ -71,8 +71,6 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
-  const { logout } = useAuth();
-
   socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
@@ -185,7 +183,7 @@ export default function MainScene(props) {
   };
 
   const sendVoteStart = async () => {
-    if (checkAgendaState() === 2) {
+    if (checkAgendaState() == 2) {
       toast("Voting already closed!");
       return;
     }
@@ -430,6 +428,7 @@ export default function MainScene(props) {
       }
     };
 
+    // Call the function to fetch agendas and update states
     getAgendasAndUsers();
   }, [getUpdate, isReset, newAgenda]);
 
@@ -438,7 +437,7 @@ export default function MainScene(props) {
   };
 
   const getDecisionFromAgenda = (userId, voteInfo) => {
-    if (voteInfo === null) return 3;
+    if (voteInfo == null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
         if (voteInfo[i]?.user_id == userId) {
@@ -448,7 +447,7 @@ export default function MainScene(props) {
       return 3;
     }
   };
-
+  const { logout } = useAuth();
   const handleLogout = () => {
     navigate("/");
     logout();
@@ -459,6 +458,24 @@ export default function MainScene(props) {
     setShowLogout(!showLogout);
   };
 
+  const cancelAgenda = () => {
+    setFormData({
+      title: "",
+      description: "",
+      pdf_path: "",
+      agenda_type: "",
+    });
+    setShowModal(!showModal); // Show modal when plus icon is clicked
+  };
+
+  const handleInputChange = (event) => {
+    const { name, value, files } = event.target;
+    // Update formData state based on input changes
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: files ? files[0] : value,
+    }));
+  };
   const handleSave = async () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
@@ -494,24 +511,9 @@ export default function MainScene(props) {
     } else {
       setError("Please fill out all required fields.");
     }
-  };
 
-  const cancelAgenda = () => {
-    setFormData({
-      title: "",
-      description: "",
-      pdf_path: "",
-      agenda_type: "",
-    });
-    setShowModal(!showModal); // Show modal when plus icon is clicked
-  };
-  const handleInputChange = (event) => {
-    const { name, value, files } = event.target;
-    // Update formData state based on input changes
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: files ? files[0] : value,
-    }));
+    // Close the modal after saving
+    // handleCloseModal();
   };
   return (
     <div className="">
@@ -701,7 +703,7 @@ export default function MainScene(props) {
                   setIsFullScreen(!isFullScreen);
                 }}
               >
-                <img src={ZoomSvg} width={60} height={60} alt="" />
+                <img src={ZoomSvg} width={60} height={60} />
               </button>
             </div>
           </div>
