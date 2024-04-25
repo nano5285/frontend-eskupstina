@@ -71,6 +71,8 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
+  const { logout } = useAuth();
+
   socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
@@ -154,6 +156,7 @@ export default function MainScene(props) {
     setOpen(false);
     setVoteClose(true);
   });
+
   socket.on("vote_reset", function (data) {
     setOpen(false);
     setVotingAgenda(null);
@@ -182,7 +185,7 @@ export default function MainScene(props) {
   };
 
   const sendVoteStart = async () => {
-    if (checkAgendaState() == 2) {
+    if (checkAgendaState() === 2) {
       toast("Voting already closed!");
       return;
     }
@@ -215,7 +218,6 @@ export default function MainScene(props) {
     };
     await resetVote(resetData);
     setIsReset(!isReset);
-    // socket.emit("vote_update", "message");
     socket.emit("vote_reset", "message", null);
   };
 
@@ -292,93 +294,23 @@ export default function MainScene(props) {
   }, []);
   useEffect(() => {
     const getAgendaById = async () => {
-      const res = await getAgenda2(selectedIndexAgenda._id);
-      let tmp = null;
-      if (!isEqual(res.data, selectedIndexAgenda)) {
-        setSelectedIndexAgenda(res.data);
-      }
-      if (res.data?.vote_info && res.data?.vote_info !== "undefined") {
-        tmp = JSON.parse(res.data.vote_info);
-      }
-      setSelectedAgenda(tmp);
-      if (tmp == null) {
-        setYesNum(0);
-        setNoNum(0);
-        setAbstrainedNum(0);
-        setNotVotedNum(0);
-        return;
-      }
-      // Counting the number of votes for each decision
-      const result = tmp?.reduce((acc, obj) => {
-        if (obj !== undefined && obj !== null) {
-          const key = obj.decision;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(obj);
-          return acc;
-        }
-        return acc;
-      }, {});
-
-      // Counting the number of objects for each decision
-      if (result) {
-        const yes = result["1"] ? result["1"].length : 0;
-        const no = result["0"] ? result["0"].length : 0;
-        const ab = result["2"] ? result["2"].length : 0;
-
-        // Setting the state variables
-        setYesNum(yes);
-        setNoNum(no);
-        setAbstrainedNum(ab);
-        setNotVotedNum(yes + no + ab);
-      }
-    };
-    getAgendaById();
-  }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
-  useEffect(() => {
-    const getAgendasAndUsers = async () => {
       try {
-        const res = await getAgenda();
-        const agendas = res?.data || [];
-
-        // Separate agendas into preAgendas and dailyAgendas
-        const preAgendas = agendas.filter(
-          (agenda) => agenda.agenda_type === "pre_agenda"
-        );
-        const dailyAgendas = agendas.filter(
-          (agenda) => agenda.agenda_type === "daily_agenda"
-        );
-
-        // Update preAgenda and dailyAgenda states
-        setPreAgenda(preAgendas);
-        setDailyAgenda(dailyAgendas);
-        setAgendas(agendas);
-        let updatedAgenda;
-        // Select default selectedIndexAgenda if not already set
+        // Ensure selectedIndexAgenda is defined and not an empty object
         if (
-          Object.keys(selectedIndexAgenda).length === 0 &&
-          preAgendas.length > 0
+          !selectedIndexAgenda ||
+          !selectedIndexAgenda._id ||
+          Object.keys(selectedIndexAgenda).length === 0
         ) {
-          setSelectedIndexAgenda(preAgendas[0]);
-          setSelectedAgendaPdf(preAgendas[0]._id);
-          updatedAgenda = preAgendas[0];
-        } else {
-          // Find selectedIndexAgenda in the updated agendas list
-          updatedAgenda = agendas.find(
-            (agenda) => agenda._id === selectedIndexAgenda._id
-          );
-          setSelectedIndexAgenda(updatedAgenda || {});
-          setSelectedAgendaPdf(updatedAgenda?._id || "");
+          return;
         }
 
-        // Parse and update vote statistics
+        const res = await getAgenda2(selectedIndexAgenda._id);
         let tmp = null;
-        if (
-          updatedAgenda?.vote_info &&
-          updatedAgenda?.vote_info !== "undefined"
-        ) {
-          tmp = JSON.parse(updatedAgenda.vote_info);
+        if (!isEqual(res.data, selectedIndexAgenda)) {
+          setSelectedIndexAgenda(res.data);
+        }
+        if (res.data?.vote_info && res.data?.vote_info !== "undefined") {
+          tmp = JSON.parse(res.data.vote_info);
         }
         setSelectedAgenda(tmp);
         if (tmp == null) {
@@ -414,11 +346,90 @@ export default function MainScene(props) {
           setNotVotedNum(yes + no + ab);
         }
       } catch (error) {
-        console.error("Error fetching agendas:", error);
+        console.error("Error fetching agenda by ID:", error);
+      }
+    };
+    getAgendaById();
+  }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
+
+  useEffect(() => {
+    const getAgendasAndUsers = async () => {
+      const res = await getAgenda();
+      const agendas = res?.data || [];
+
+      // Separate agendas into preAgendas and dailyAgendas
+      const preAgendas = agendas.filter(
+        (agenda) => agenda.agenda_type === "pre_agenda"
+      );
+      const dailyAgendas = agendas.filter(
+        (agenda) => agenda.agenda_type === "daily_agenda"
+      );
+
+      // Update preAgenda and dailyAgenda states
+      setPreAgenda(preAgendas);
+      setDailyAgenda(dailyAgendas);
+      setAgendas(agendas);
+      let updatedAgenda;
+      // Select default selectedIndexAgenda if not already set
+      if (
+        Object.keys(selectedIndexAgenda).length === 0 &&
+        preAgendas.length > 0
+      ) {
+        setSelectedIndexAgenda(preAgendas[0]);
+        setSelectedAgendaPdf(preAgendas[0]._id);
+        updatedAgenda = preAgendas[0];
+      } else {
+        // Find selectedIndexAgenda in the updated agendas list
+        updatedAgenda = agendas.find(
+          (agenda) => agenda._id === selectedIndexAgenda._id
+        );
+        setSelectedIndexAgenda(updatedAgenda || {});
+        setSelectedAgendaPdf(updatedAgenda?._id || "");
+      }
+
+      // Parse and update vote statistics
+      let tmp = null;
+      if (
+        updatedAgenda?.vote_info &&
+        updatedAgenda?.vote_info !== "undefined"
+      ) {
+        tmp = JSON.parse(updatedAgenda.vote_info);
+      }
+      setSelectedAgenda(tmp);
+      if (tmp == null) {
+        setYesNum(0);
+        setNoNum(0);
+        setAbstrainedNum(0);
+        setNotVotedNum(0);
+        return;
+      }
+      // Counting the number of votes for each decision
+      const result = tmp?.reduce((acc, obj) => {
+        if (obj !== undefined && obj !== null) {
+          const key = obj.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
+        }
+        return acc;
+      }, {});
+
+      // Counting the number of objects for each decision
+      if (result) {
+        const yes = result["1"] ? result["1"].length : 0;
+        const no = result["0"] ? result["0"].length : 0;
+        const ab = result["2"] ? result["2"].length : 0;
+
+        // Setting the state variables
+        setYesNum(yes);
+        setNoNum(no);
+        setAbstrainedNum(ab);
+        setNotVotedNum(yes + no + ab);
       }
     };
 
-    // Call the function to fetch agendas and update states
     getAgendasAndUsers();
   }, [getUpdate, isReset, newAgenda]);
 
@@ -427,7 +438,7 @@ export default function MainScene(props) {
   };
 
   const getDecisionFromAgenda = (userId, voteInfo) => {
-    if (voteInfo == null) return 3;
+    if (voteInfo === null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
         if (voteInfo[i]?.user_id == userId) {
@@ -437,7 +448,7 @@ export default function MainScene(props) {
       return 3;
     }
   };
-  const { logout } = useAuth();
+
   const handleLogout = () => {
     navigate("/");
     logout();
@@ -448,24 +459,6 @@ export default function MainScene(props) {
     setShowLogout(!showLogout);
   };
 
-  const cancelAgenda = () => {
-    setFormData({
-      title: "",
-      description: "",
-      pdf_path: "",
-      agenda_type: "",
-    });
-    setShowModal(!showModal); // Show modal when plus icon is clicked
-  };
-
-  const handleInputChange = (event) => {
-    const { name, value, files } = event.target;
-    // Update formData state based on input changes
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: files ? files[0] : value,
-    }));
-  };
   const handleSave = async () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
@@ -501,9 +494,24 @@ export default function MainScene(props) {
     } else {
       setError("Please fill out all required fields.");
     }
+  };
 
-    // Close the modal after saving
-    // handleCloseModal();
+  const cancelAgenda = () => {
+    setFormData({
+      title: "",
+      description: "",
+      pdf_path: "",
+      agenda_type: "",
+    });
+    setShowModal(!showModal); // Show modal when plus icon is clicked
+  };
+  const handleInputChange = (event) => {
+    const { name, value, files } = event.target;
+    // Update formData state based on input changes
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: files ? files[0] : value,
+    }));
   };
   return (
     <div className="">
@@ -693,7 +701,7 @@ export default function MainScene(props) {
                   setIsFullScreen(!isFullScreen);
                 }}
               >
-                <img src={ZoomSvg} width={60} height={60} />
+                <img src={ZoomSvg} width={60} height={60} alt="" />
               </button>
             </div>
           </div>
