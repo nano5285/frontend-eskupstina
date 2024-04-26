@@ -3,27 +3,20 @@ import { getTvUsers } from "../../services/axios";
 import "./tv.css";
 import UserComponent from "../../components/UserComponent";
 import { useEffect } from "react";
-import { getAgenda, getAgenda2 } from "../../services/axios";
+import { getAgenda2 } from "../../services/axios";
 import { socket } from "../../utils/socket";
 export default function LoginScene() {
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
   const [yesNum, setYesNum] = useState(0);
-  const [agendas, setAgendas] = useState([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [noNum, setNoNum] = useState(0);
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
-  const [updateFlag, setUpdateFlag] = useState(false);
-  const [isReset, setIsReset] = useState(false);
   const [open, setOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [emitAgendaIndex, setEmitAgendaIndex] = useState(0);
-  const [agendaName, setAgendaName] = useState("");
-  const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [agendaId, setAgendaId] = useState("");
   const [updateChange, setUpdateChange] = useState(false);
   const [agenda, setAgenda] = useState("");
+
   useEffect(() => {
     socket.on("live_voting_results", (agendaId) => {
       setAgendaId(agendaId);
@@ -31,7 +24,6 @@ export default function LoginScene() {
   }, []);
 
   socket.on("message", function (data) {
-    setEmitAgendaIndex(data);
     setOpen(!open);
     setUpdateChange(!updateChange);
   });
@@ -87,7 +79,6 @@ export default function LoginScene() {
       if (agenda && agenda?.vote_info && agenda?.vote_info !== "undefined") {
         tmp = JSON.parse(agenda?.vote_info);
       }
-      setSelectedAgenda(tmp);
       if (tmp == null) {
         setYesNum(0);
         setNoNum(0);
@@ -120,11 +111,12 @@ export default function LoginScene() {
     };
     getAgenda();
   }, [agenda]);
+
   const getDecisionFromAgenda = (userId, voteInfo) => {
     if (voteInfo == null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
-        if (voteInfo[i]?.user_id == userId) {
+        if (voteInfo[i]?.user_id === userId) {
           return voteInfo[i].decision;
         }
       }

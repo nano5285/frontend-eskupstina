@@ -32,7 +32,6 @@ import AgendaDialog from "../../components/AgendaDialog";
 import isEqual from "lodash/isEqual";
 export default function MainScene(props) {
   const { state } = useLocation();
-  const [agendas, setAgendas] = useState([]);
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
@@ -48,8 +47,6 @@ export default function MainScene(props) {
   const [updateFlag, setUpdateFlag] = useState(false);
   const userName = localStorage.getItem("userName");
   const [selectedAgendaPdf, setSelectedAgendaPdf] = useState();
-  const [currentVotingAgenda, setCurrentVotingAgenda] = useState("");
-  const [changeIndex, setChangeIndex] = useState(false);
   const [votingAgenda, setVotingAgenda] = useState();
   const [connected, setConnected] = useState();
   const navigate = useNavigate();
@@ -57,8 +54,6 @@ export default function MainScene(props) {
   const [showLogout, setShowLogout] = useState(false);
   const [voteClose, setVoteClose] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [admin, setAdmin] = useState(false);
   const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
@@ -77,9 +72,7 @@ export default function MainScene(props) {
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
       if (agendaId) {
-        setCurrentVotingAgenda(agendaId);
         const res = await getAgenda();
-        setAgendas(res.data);
         const preAgendas = res?.data.filter(
           (agenda) => agenda.agenda_type === "pre_agenda"
         );
@@ -88,23 +81,13 @@ export default function MainScene(props) {
         );
         setPreAgenda(preAgendas);
         setDailyAgenda(dailyAgendas);
-        res.data.forEach((item) => {
-          if (item._id === agendaId) {
-            const exists = JSON.parse(item.vote_info)?.some(
-              (element) => element?.user_id === localStorage.getItem("userId")
-            );
-            if (!exists) setOpen(true);
-          }
-        });
       }
     });
   }, []);
 
   socket.on("vote_start", function (agendaId, agenda) {
-    setCurrentVotingAgenda(agendaId);
     setVotingAgenda(agenda);
     setOpen(!open);
-    setChangeIndex(true);
     setGetUpdate(!getUpdate);
   });
 
@@ -165,6 +148,7 @@ export default function MainScene(props) {
     if (state?.role == "admin") {
       setAdminOpen(!adminOpen);
     }
+    
     setOpen(!open);
     const voteData = {
       user_id: currentUser,
@@ -178,7 +162,7 @@ export default function MainScene(props) {
     );
     socket.emit("vote_update", "message", selectedIndexAgenda._id, voteData);
     if (!connected) {
-      let res = await handleVote(voteData);
+      await handleVote(voteData);
     }
   };
 
@@ -366,7 +350,6 @@ export default function MainScene(props) {
       // Update preAgenda and dailyAgenda states
       setPreAgenda(preAgendas);
       setDailyAgenda(dailyAgendas);
-      setAgendas(agendas);
       let updatedAgenda;
       // Select default selectedIndexAgenda if not already set
       if (
@@ -428,7 +411,6 @@ export default function MainScene(props) {
       }
     };
 
-    // Call the function to fetch agendas and update states
     getAgendasAndUsers();
   }, [getUpdate, isReset, newAgenda]);
 
@@ -479,7 +461,6 @@ export default function MainScene(props) {
   const handleSave = async () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
-      setLoading(true);
       try {
         // Call createAgenda function
         const result = await createAgenda(formData);
@@ -491,7 +472,6 @@ export default function MainScene(props) {
           pdf_path: "",
           agenda_type: "",
         });
-        setLoading(false);
         setShowModal(false);
         setNewAgenda(true);
         const modal = document.getElementById("myModal");
@@ -508,12 +488,7 @@ export default function MainScene(props) {
         // Handle error
         console.error("Error creating agenda:", error);
       }
-    } else {
-      setError("Please fill out all required fields.");
     }
-
-    // Close the modal after saving
-    // handleCloseModal();
   };
   return (
     <div className="">
@@ -634,7 +609,6 @@ export default function MainScene(props) {
                       locked={item.vote_state == 2}
                       name={item.name}
                       onClick={() => {
-                        setChangeIndex(true);
                         setGetUpdate(!getUpdate);
                         setSelectedIndexAgenda(preAgenda[index]);
                         setSelectedAgendaPdf(preAgenda[index]?._id);
@@ -669,7 +643,6 @@ export default function MainScene(props) {
                       locked={dailyAgenda[index].vote_state == 2}
                       name={item.name}
                       onClick={() => {
-                        setChangeIndex(true);
                         setSelectedIndexAgenda(dailyAgenda[index]);
                         setSelectedAgendaPdf(dailyAgenda[index]?._id);
                       }}
@@ -703,7 +676,7 @@ export default function MainScene(props) {
                   setIsFullScreen(!isFullScreen);
                 }}
               >
-                <img src={ZoomSvg} width={60} height={60} />
+                <img src={ZoomSvg} width={60} height={60} alt="eskupstina zoom" />
               </button>
             </div>
           </div>
