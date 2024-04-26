@@ -127,40 +127,43 @@ export default function LoginScene() {
     <div className="mt-4 ml-12 mr-12">
       <div className="text-center row justify-content-center">
         <div className="border border-dark p-4">
-          <div className="mb-4 bold-title" style={{ fontWeight: "bold" }}>
+          <div
+            className="mb-4 bold-title"
+            style={{ fontWeight: "bold", fontSize: "50px" }}
+          >
             {agenda?.name}
           </div>
           <div>
             <div className="flex flex-row w-full justify-around align-items-center bg-[#f5f5f5] rounded-[20px] p-[10px]">
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B] text-lg md:text-xl">
+              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {notVotedNum}
                 </div>
-                <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words text-lg md:text-xl">
+                <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
                   Ukupno
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] text-lg md:text-xl ">
+              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {yesNum}
                 </div>
-                <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words text-lg md:text-xl">
+                <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
                   ZA
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] text-lg md:text-xl">
+              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {abstrainedNum}
                 </div>
-                <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-lg md:text-xl">
+                <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
                   Suzdržano
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] text-lg md:text-xl">
+              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {noNum}
                 </div>
-                <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words text-lg md:text-xl">
+                <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
                   Protiv
                 </div>
               </div>
