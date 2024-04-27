@@ -264,7 +264,7 @@ export default function MainScene(props) {
     const getUsers = async () => {
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
-      // Check if the userId exists in localStoragee
+      // Check if the userId exists in localStorage
       if (userId) {
         // Find the user with the matching ID
         const user = resp.data.find((user) => user._id === userId);
