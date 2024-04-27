@@ -71,9 +71,7 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
-  const { logout } = useAuth();
-
-  socket.on("user_disconnected", function () {
+  socket.on("disconnect", function () {
     setConnected(!connected);
   });
   useEffect(() => {
