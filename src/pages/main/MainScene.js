@@ -81,21 +81,6 @@ export default function MainScene(props) {
         );
         setPreAgenda(preAgendas);
         setDailyAgenda(dailyAgendas);
-
-        res.data.forEach((item) => {
-          if (item._id === agendaId) {
-            const voteState = item.vote_state;
-            setVotingAgenda(item);
-            if (voteState !== 2) {
-              const exists = JSON.parse(item.vote_info)?.some(
-                (element) => element?.user_id === localStorage.getItem("userId")
-              );
-              if (!exists) {
-                setOpen(true);
-              }
-            }
-          }
-        });
       }
     });
   }, []);
@@ -163,7 +148,7 @@ export default function MainScene(props) {
     if (state?.role == "admin") {
       setAdminOpen(!adminOpen);
     }
-
+    
     setOpen(!open);
     const voteData = {
       user_id: currentUser,
@@ -261,7 +246,7 @@ export default function MainScene(props) {
     const getUsers = async () => {
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
-      // Check if the userId exists in localStorage
+      // Check if the userId exists in localStorage 
       if (userId) {
         // Find the user with the matching ID
         const user = resp.data.find((user) => user._id === userId);
@@ -691,12 +676,7 @@ export default function MainScene(props) {
                   setIsFullScreen(!isFullScreen);
                 }}
               >
-                <img
-                  src={ZoomSvg}
-                  width={60}
-                  height={60}
-                  alt="eskupstina zoom"
-                />
+                <img src={ZoomSvg} width={60} height={60} alt="eskupstina zoom" />
               </button>
             </div>
           </div>
