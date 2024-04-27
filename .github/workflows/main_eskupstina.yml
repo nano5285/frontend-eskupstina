@@ -6,7 +6,7 @@ name: Build and deploy Node.js app to Azure Web App - eskupstina
 on:
   push:
     branches:
-      - development
+      - prod
   workflow_dispatch:
 
 jobs:
