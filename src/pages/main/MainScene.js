@@ -30,6 +30,7 @@ import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import AgendaDialog from "../../components/AgendaDialog";
 import isEqual from "lodash/isEqual";
+
 export default function MainScene(props) {
   const { state } = useLocation();
   const [party, setParty] = useState([]);
