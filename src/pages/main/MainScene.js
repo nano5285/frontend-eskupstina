@@ -266,7 +266,7 @@ export default function MainScene(props) {
         // Find the user with the matching ID
         const user = resp.data.find((user) => user._id === userId);
 
-        // Check if the user is found
+        // Check if the user is found 
         if (user.role === "admin") {
           // Return the user's role
           setAdmin(true);
