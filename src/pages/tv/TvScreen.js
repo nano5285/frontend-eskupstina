@@ -16,6 +16,7 @@ export default function LoginScene() {
   const [agendaId, setAgendaId] = useState("");
   const [updateChange, setUpdateChange] = useState(false);
   const [agenda, setAgenda] = useState("");
+  
 
   useEffect(() => {
     socket.on("live_voting_results", (agendaId) => {
