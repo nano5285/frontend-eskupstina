@@ -7,7 +7,6 @@ import axios from "axios";
 axios.defaults.baseURL =
   process.env.REACT_APP_API_URL ||
   "https://backend-eskupstina.azurewebsites.net/";
-
 const signInUser = async (props) => {
   try {
     var result = await axios.post("/api/login/", props, {
@@ -32,6 +31,8 @@ const getAgenda = async (props) => {
         "Content-Type": "application/json",
       },
     });
+
+    console.log("ASDa");
     return result.data;
   } catch (error) {
     return error.response;
@@ -158,8 +159,22 @@ const resetVote = async (props) => {
   }
 };
 
+const getSessions = async (props) => {
+  try {
+    var result = await axios.get("/api/get_sessions/", props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
 export {
   createAgenda,
+  getSessions,
   signInUser,
   getAgenda,
   getAgenda2,

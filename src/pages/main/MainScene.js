@@ -7,6 +7,7 @@ import {
   createAgenda,
   getAgenda,
   getAgenda2,
+  getSessions,
   getUser,
   handleVote,
   resetVote,
@@ -53,7 +54,7 @@ export default function MainScene(props) {
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("userId");
   const [showLogout, setShowLogout] = useState(false);
-  const [voteClose, setVoteClose] = useState(false);
+  const [voteClose, setVoteClose] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [newAgenda, setNewAgenda] = useState(false);
@@ -61,6 +62,12 @@ export default function MainScene(props) {
   const [dailyAgenda, setDailyAgenda] = useState([]);
   const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
   const [getUpdate, setGetUpdate] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [currentSession, setCurrentSessions] = useState({
+    id: "",
+    name: "",
+    agendas: [],
+  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -73,17 +80,29 @@ export default function MainScene(props) {
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
       if (agendaId) {
-        const res = await getAgenda();
-        const preAgendas = res?.data.filter(
+        const res = await getSessions();
+
+        const currentSessionId = getCookie("currentSessionId")
+          ? getCookie("currentSessionId")
+          : res?.data[0].id;
+
+        const currentSession = res?.data.find(
+          (item) => item.id == currentSessionId
+        );
+
+        setCurrentSessions(currentSession);
+        setCookie("currentSessionId", currentSessionId, 30);
+
+        const preAgendas = currentSession.agendas.filter(
           (agenda) => agenda.agenda_type === "pre_agenda"
         );
-        const dailyAgendas = res?.data.filter(
+        const dailyAgendas = currentSession.agendas.filter(
           (agenda) => agenda.agenda_type === "daily_agenda"
         );
         setPreAgenda(preAgendas);
         setDailyAgenda(dailyAgendas);
 
-        res.data.forEach((item) => {
+        currentSession.agendas.forEach((item) => {
           if (item._id === agendaId) {
             const voteState = item.vote_state;
             setVotingAgenda(item);
@@ -99,12 +118,14 @@ export default function MainScene(props) {
         });
       }
     });
+   
   }, []);
-
+  
   socket.on("vote_start", function (agendaId, agenda) {
     setVotingAgenda(agenda);
     setOpen(!open);
     setGetUpdate(!getUpdate);
+    setVoteClose(false);
   });
 
   socket.on("vote_update", function (message, agendaId, agenda) {
@@ -352,9 +373,20 @@ export default function MainScene(props) {
 
   useEffect(() => {
     const getAgendasAndUsers = async () => {
-      const res = await getAgenda();
-      const agendas = res?.data || [];
+      const res = await getSessions();
+      setSessions(res?.data);
+      const currentSessionId = getCookie("currentSessionId")
+        ? getCookie("currentSessionId")
+        : res?.data[0].id;
 
+      const currentSession = res?.data.find(
+        (item) => item.id == currentSessionId
+      );
+
+      setCurrentSessions(currentSession);
+      setCookie("currentSessionId", currentSessionId, 30);
+
+      const agendas = currentSession.agendas || [];
       // Separate agendas into preAgendas and dailyAgendas
       const preAgendas = agendas.filter(
         (agenda) => agenda.agenda_type === "pre_agenda"
@@ -362,7 +394,6 @@ export default function MainScene(props) {
       const dailyAgendas = agendas.filter(
         (agenda) => agenda.agenda_type === "daily_agenda"
       );
-
       // Update preAgenda and dailyAgenda states
       setPreAgenda(preAgendas);
       setDailyAgenda(dailyAgendas);
@@ -506,6 +537,45 @@ export default function MainScene(props) {
       }
     }
   };
+
+  const sessionChange = (item) => {
+    setCurrentSessions(item);
+    setCookie("currentSessionId", item.id, 30);
+
+    const preAgendas = item.agendas.filter(
+      (agenda) => agenda.agenda_type === "pre_agenda"
+    );
+    const dailyAgendas = item.agendas.filter(
+      (agenda) => agenda.agenda_type === "daily_agenda"
+    );
+
+    setPreAgenda(preAgendas);
+    setDailyAgenda(dailyAgendas);
+    setShowLogout(!showLogout);
+  };
+
+  const setCookie = (name, value, minutesToExpire) => {
+    var now = new Date();
+    var expirationDate = new Date(now.getTime() + minutesToExpire * 60000); // Convert minutes to milliseconds
+    document.cookie =
+      name +
+      "=" +
+      value +
+      "; expires=" +
+      expirationDate.toUTCString() +
+      "; path=/";
+  };
+  function getCookie(name) {
+    var cookies = document.cookie.split(";");
+
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+      if (cookie.indexOf(name + "=") === 0) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+    return false;
+  }
   return (
     <div className="">
       {showModal && (
@@ -539,33 +609,7 @@ export default function MainScene(props) {
                   onClick={toggleLogout}
                   className="cursor-pointer"
                 />
-                {showLogout && (
-                  <div
-                    id="logout"
-                    className="position-absolute top-50 end-0 translate-middle-y"
-                    style={{
-                      backgroundColor:
-                        "rgb(213 213 213 / var(--tw-bg-opacity))",
-                      padding: "10px",
-                      border: "1px solid #ccc",
-                      borderRadius: "5px",
-                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                      marginBottom: "2px",
-                      cursor: "pointer",
-                      position: "absolute",
-                      right: "0",
-                      left: "0",
-                      top: "30px",
-                      height: "68px",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                    onClick={handleLogout}
-                  >
-                    <FontAwesomeIcon className="ml-1" icon={faSignOutAlt} />
-                    <button className="btn ml-2">Logout</button>
-                  </div>
-                )}
+
                 <div
                   style={{
                     display: "flex",
@@ -587,6 +631,7 @@ export default function MainScene(props) {
                     <span style={{ marginLeft: "8px" }}>{userName}</span>
                   </div>
                 </div>
+
                 <div>
                   {admin && (
                     <button data-toggle="modal" data-target="#myModal">
@@ -600,14 +645,53 @@ export default function MainScene(props) {
                   )}
                 </div>
               </div>
-
+              {showLogout && (
+                <div className="mt-2">
+                  {sessions.map((item) => (
+                    <p
+                      className="mt-3 text-lg pointer-cursor"
+                      id={item.id}
+                      onClick={() => sessionChange(item)}
+                    >
+                      {item.name}
+                    </p>
+                  ))}
+                  <div
+                    id="logout"
+                    className="mt-3"
+                    style={{
+                      backgroundColor:
+                        "rgb(213 213 213 / var(--tw-bg-opacity))",
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      borderRadius: "5px",
+                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                      marginBottom: "2px",
+                      cursor: "pointer",
+                      top: "30px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                    onClick={handleLogout}
+                  >
+                    <FontAwesomeIcon className="ml-1" icon={faSignOutAlt} />
+                    <button className="btn ml-2">Logout</button>
+                  </div>
+                </div>
+              )}
+              <div>
+                <h1 className="text-xl text-center my-4 font-bold text-center px-5">
+                  {currentSession.name}
+                </h1>
+              </div>
               <div
                 style={
                   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
                 }
               >
                 <div>
-                  <div> Pre Agenda</div>
+                  <div> Pre Agenda </div>
                   <div
                     style={{
                       borderTop:
