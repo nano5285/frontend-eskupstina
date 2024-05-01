@@ -7,7 +7,9 @@ import axios from "axios";
 axios.defaults.baseURL =
   process.env.REACT_APP_API_URL ||
   "https://backend-eskupstina.azurewebsites.net/";
-const signInUser = async (props) => {
+
+/* axios.defaults.baseURL = "http://localhost:8080/";
+ */ const signInUser = async (props) => {
   try {
     var result = await axios.post("/api/login/", props, {
       headers: {
@@ -17,6 +19,7 @@ const signInUser = async (props) => {
     localStorage.setItem("token", result.data.token);
     localStorage.setItem("userName", result.data.name);
     localStorage.setItem("userId", result.data.id);
+    localStorage.setItem("role", result.data.role);
     //wait for 1 second
     return result.data;
   } catch (error) {
@@ -135,6 +138,7 @@ const createAgenda = async (props) => {
     formData.append("description", props.description);
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
+    formData.append("session", props.session);
 
     const result = await axios.post("/api/agenda", formData, {
       headers: {
@@ -172,9 +176,36 @@ const getSessions = async (props) => {
   }
 };
 
+const deleteAgendaAPI = async (props) => {
+  try {
+    var result = await axios.delete(`/api/agenda/${props}`, props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+const deleteSessionAPI = async (props) => {
+  try {
+    var result = await axios.delete(`/api/session/${props}`, props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
 export {
   createAgenda,
+  deleteAgendaAPI,
   getSessions,
+  deleteSessionAPI,
   signInUser,
   getAgenda,
   getAgenda2,

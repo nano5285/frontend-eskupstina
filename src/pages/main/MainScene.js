@@ -118,9 +118,8 @@ export default function MainScene(props) {
         });
       }
     });
-   
   }, []);
-  
+
   socket.on("vote_start", function (agendaId, agenda) {
     setVotingAgenda(agenda);
     setOpen(!open);
@@ -497,47 +496,6 @@ export default function MainScene(props) {
     setShowModal(!showModal); // Show modal when plus icon is clicked
   };
 
-  const handleInputChange = (event) => {
-    const { name, value, files } = event.target;
-    // Update formData state based on input changes
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: files ? files[0] : value,
-    }));
-  };
-  const handleSave = async () => {
-    const form = document.getElementById("agendaForm");
-    if (form.checkValidity()) {
-      try {
-        // Call createAgenda function
-        const result = await createAgenda(formData);
-        // Handle response
-        console.log("Agenda created:", result);
-        setFormData({
-          title: "",
-          description: "",
-          pdf_path: "",
-          agenda_type: "",
-        });
-        setShowModal(false);
-        setNewAgenda(true);
-        const modal = document.getElementById("myModal");
-        if (modal) {
-          modal.classList.remove("show");
-          modal.style.display = "none";
-          const modalBackdrop =
-            document.getElementsByClassName("modal-backdrop")[0];
-          if (modalBackdrop) {
-            modalBackdrop.parentNode.removeChild(modalBackdrop);
-          }
-        }
-      } catch (error) {
-        // Handle error
-        console.error("Error creating agenda:", error);
-      }
-    }
-  };
-
   const sessionChange = (item) => {
     setCurrentSessions(item);
     setCookie("currentSessionId", item.id, 30);
@@ -578,15 +536,6 @@ export default function MainScene(props) {
   }
   return (
     <div className="">
-      {showModal && (
-        <AgendaDialog
-          formData={formData}
-          open={showModal}
-          cancelAgenda={cancelAgenda}
-          handleInputChange={handleInputChange}
-          handleSave={handleSave}
-        ></AgendaDialog>
-      )}
       <div
         className={`${
           isFullScreen ? "p-[20px]" : "p-[0px]"
@@ -691,7 +640,6 @@ export default function MainScene(props) {
                 }
               >
                 <div>
-                  <div> Pre Agenda </div>
                   <div
                     style={{
                       borderTop:
@@ -724,7 +672,7 @@ export default function MainScene(props) {
               >
                 {dailyAgenda.length && (
                   <div>
-                    <div> Daily Agenda</div>
+                    <div> Dnevna Agenda</div>
                     <div
                       style={{
                         borderTop:

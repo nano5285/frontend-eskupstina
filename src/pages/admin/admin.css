@@ -1,0 +1,68 @@
+.admin {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.admin .heading {
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.admin-content {
+  width: 80%;
+  min-height: 50vh;
+}
+.admin-content-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-content-nav button {
+  border: solid 2px silver;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 0px 10px;
+}
+
+.sessions-tab {
+  padding: 10px;
+  background-color: rgb(231, 231, 231);
+  position: relative;
+}
+.sessions-tab p {
+  width: 80%;
+  font-size: 22px;
+  font-weight: 600;
+}
+.agendas-tab {
+  padding: 5px 10px;
+  font-size: 18px;
+  border-bottom: solid 1px silver;
+  position: relative;
+}
+.agendas-tab p {
+  width: 80%;
+}
+.action-buttons {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.add {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.add input {
+  width: 500px;
+  border: solid 1px silver;
+  padding: 5px 10px;
+}
+.active-nav {
+  border: solid 2px black!important;
+  font-weight: bold;
+}

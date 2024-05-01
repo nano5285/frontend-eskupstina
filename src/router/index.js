@@ -6,9 +6,11 @@ import LoginScene from "../pages/auth/LoginScene";
 import MainScene from "../pages/main/MainScene";
 import TvScreen from "../pages/tv/TvScreen";
 import { useAuth } from "../authContext";
+import { Admin } from "../pages/admin/Admin";
 
 export default function Router() {
   const { isLoggedIn } = useAuth();
+  const role = localStorage.getItem("role");
   return (
     <BrowserRouter>
       <Routes>
@@ -21,6 +23,12 @@ export default function Router() {
           element={isLoggedIn ? <MainScene /> : <Navigate to="/" />}
         />
         <Route path="/tv" element={<TvScreen />} />
+        <Route
+          path="/admin"
+          element={
+            isLoggedIn && role == "admin" ? <Admin /> : <Navigate to="/" />
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -3,7 +3,14 @@ import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 export default function AgendaDialog(props) {
-  const { formData, open, cancelAgenda, handleInputChange, handleSave } = props;
+  const {
+    formData,
+    open,
+    cancelAgenda,
+    handleInputChange,
+    handleSave,
+    sessions,
+  } = props;
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -51,7 +58,7 @@ export default function AgendaDialog(props) {
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
                     >
-                      Add Agenda
+                      Dodaj Agendu
                     </Dialog.Title>
                     <form id="agendaForm">
                       <div className="space-y-12 sm:space-y-16">
@@ -62,7 +69,7 @@ export default function AgendaDialog(props) {
                                 htmlFor="username"
                                 className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
                               >
-                                Title
+                                Naziv
                               </label>
                               <div className="mt-2 sm:col-span-2 sm:mt-0">
                                 <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
@@ -83,7 +90,7 @@ export default function AgendaDialog(props) {
                                 htmlFor="about"
                                 className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
                               >
-                                Description
+                                Opis
                               </label>
                               <div className="mt-2 sm:col-span-2 sm:mt-0">
                                 <textarea
@@ -96,7 +103,7 @@ export default function AgendaDialog(props) {
                                   value={formData.description}
                                 />
                                 <p className="mt-3 text-sm leading-6 text-gray-600">
-                                  Write a few sentences about Agenda.
+                                  Napišite par reči o agendi
                                 </p>
                               </div>
                             </div>
@@ -108,7 +115,7 @@ export default function AgendaDialog(props) {
                                       className="text-sm font-semibold leading-6 text-gray-900"
                                       aria-hidden="true"
                                     >
-                                      Type
+                                      Tip
                                     </div>
                                     <div className="mt-1 sm:col-span-2 sm:mt-0">
                                       <div className="max-w-lg">
@@ -142,9 +149,49 @@ export default function AgendaDialog(props) {
                                               htmlFor="push-email"
                                               className="block text-sm font-medium leading-6 text-gray-900"
                                             >
-                                              Daily Agenda
+                                              Dnevna Agenda
                                             </label>
                                           </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </fieldset>
+                              </div>
+
+                              <div className=" space-y-10 sm:pb-0">
+                                <fieldset>
+                                  <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4 sm:py-6">
+                                    <div
+                                      className="text-sm font-semibold leading-6 text-gray-900"
+                                      aria-hidden="true"
+                                    >
+                                      Sednica
+                                    </div>
+                                    <div className="mt-1 sm:col-span-2 sm:mt-0">
+                                      <div className="max-w-lg">
+                                        <div className="mt-6 space-y-6">
+                                          {sessions.map((item) => (
+                                            <div
+                                              key={item.id}
+                                              className="flex items-center gap-x-3"
+                                            >
+                                              <input
+                                                id="push-email"
+                                                name="session"
+                                                type="radio"
+                                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                                onChange={handleInputChange}
+                                                value={item.id}
+                                              />
+                                              <label
+                                                htmlFor="push-email"
+                                                className="block text-sm font-medium leading-6 text-gray-900"
+                                              >
+                                                {item.name}
+                                              </label>
+                                            </div>
+                                          ))}
                                         </div>
                                       </div>
                                     </div>
@@ -157,7 +204,7 @@ export default function AgendaDialog(props) {
                                 htmlFor="about"
                                 className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
                               >
-                                Document
+                                Dokument
                               </label>
                               <div className="mt-2 sm:col-span-2 sm:mt-0">
                                 <input
