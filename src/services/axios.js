@@ -35,7 +35,6 @@ const getAgenda = async (props) => {
       },
     });
 
-    console.log("ASDa");
     return result.data;
   } catch (error) {
     return error.response;
@@ -150,6 +149,26 @@ const createAgenda = async (props) => {
     return error.response;
   }
 };
+
+const updateAgenda = async (props, id) => {
+  try {
+    const formData = new FormData();
+    formData.append("title", props.title);
+    formData.append("description", props.description);
+    formData.append("pdf_path", props.pdf_path);
+    formData.append("agenda_type", props.agenda_type);
+    formData.append("session", props.session);
+
+    const result = await axios.put(`/api/update-agenda?id=${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 const resetVote = async (props) => {
   try {
     var result = await axios.post("/api/reset_vote/", props, {
@@ -201,7 +220,35 @@ const deleteSessionAPI = async (props) => {
   }
 };
 
+const createSession = async (props) => {
+  try {
+    const result = await axios.post("/api/create-session", props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+const updateSession = async (data, id) => {
+  try {
+    const result = await axios.put(`/api/update-session?id=${id}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
 export {
+  createSession,
+  updateSession,
+  updateAgenda,
   createAgenda,
   deleteAgendaAPI,
   getSessions,

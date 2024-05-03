@@ -128,6 +128,10 @@ export default function AgendaDialog(props) {
                                               className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                               onChange={handleInputChange}
                                               value="pre_agenda"
+                                              checked={
+                                                formData.agenda_type ===
+                                                "pre_agenda"
+                                              } // Set checked attribute based on your condition
                                             />
                                             <label
                                               htmlFor="push-everything"
@@ -144,6 +148,10 @@ export default function AgendaDialog(props) {
                                               className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                               onChange={handleInputChange}
                                               value="daily_agenda"
+                                              checked={
+                                                formData.agenda_type ===
+                                                "daily_agenda"
+                                              }
                                             />
                                             <label
                                               htmlFor="push-email"

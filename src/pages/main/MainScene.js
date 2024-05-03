@@ -13,7 +13,7 @@ import {
   resetVote,
   startVote,
 } from "../../services/axios";
-import { Button } from "@material-tailwind/react";
+import { Button, button } from "@material-tailwind/react";
 import CloseAlert from "../../components/CloseAlert";
 import CustomButton from "../../components/CustomButton";
 import UserComponent from "../../components/UserComponent";
@@ -583,14 +583,29 @@ export default function MainScene(props) {
 
                 <div>
                   {admin && (
-                    <button data-toggle="modal" data-target="#myModal">
-                      <FontAwesomeIcon
-                        icon={faSquarePlus}
-                        size="lg"
-                        className="cursor-pointer"
-                        onClick={cancelAgenda}
-                      />
-                    </button>
+                    <div
+                      id="logout"
+                      className="mt-3 mr-3 "
+                      style={{
+                        backgroundColor:
+                          "white",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        marginBottom: "2px",
+                        cursor: "pointer",
+                        top: "30px",
+                        height: "40px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "center",
+                      }}
+                      onClick={() => navigate("/admin")}
+                    >
+                      <button className="btn ml-2">Admin</button>
+                    </div>
                   )}
                 </div>
               </div>

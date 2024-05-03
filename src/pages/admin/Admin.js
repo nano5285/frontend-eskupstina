@@ -12,14 +12,19 @@ import {
   deleteAgendaAPI,
   deleteSessionAPI,
   createAgenda,
+  createSession,
+  updateSession,
+  updateAgenda,
 } from "../../services/axios";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AgendaDialog from "../../components/AgendaDialog";
+import SessionDialog from "../../components/SessionDialog";
 
 export const Admin = () => {
   const [sessions, setSessions] = useState([]);
   const [active, setActive] = useState("list");
+  const [selectedItem, setSelectedItem] = useState("");
 
   const [formData, setFormData] = useState({
     title: "",
@@ -27,6 +32,11 @@ export const Admin = () => {
     pdf_path: "",
     agenda_type: "",
     session: "",
+  });
+  const [formDataSession, setFormDataSession] = useState({
+    title: "",
+    start_time: "",
+    end_time: "",
   });
 
   const fetchSessions = async () => {
@@ -90,6 +100,14 @@ export const Admin = () => {
       [name]: files ? files[0] : value,
     }));
   };
+  const handleInputChangeSession = (event) => {
+    const { name, value, files } = event.target;
+    setFormDataSession((prevState) => ({
+      ...prevState,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
   const handleSave = async () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
@@ -111,6 +129,80 @@ export const Admin = () => {
       }
     }
   };
+
+  const handleSaveSession = async () => {
+    const form = document.getElementById("sessionForm");
+    if (form.checkValidity()) {
+      try {
+        const result = await createSession(formDataSession);
+        if (result.status == 1) {
+          toast("Uspešno kreirana sednice");
+        } else {
+          toast("Neuspešno kreirana sednice");
+        }
+        setFormDataSession({
+          title: "",
+          start_time: "",
+          end_time: "",
+        });
+        fetchSessions();
+        setActive("list");
+      } catch (error) {
+        toast("Greška pri kreiranju sednice");
+        console.error("Error creating session:", error);
+      }
+    }
+  };
+
+  const handleUpdateSession = async () => {
+    const form = document.getElementById("sessionForm");
+    if (form.checkValidity()) {
+      try {
+        const result = await updateSession(formDataSession, selectedItem);
+        if (result.status == 1) {
+          toast("Uspešno uredjene sednice");
+        } else {
+          toast("Neuspešno uredjene sednice");
+        }
+        setFormDataSession({
+          title: "",
+          start_time: "",
+          end_time: "",
+        });
+        fetchSessions();
+        setActive("list");
+      } catch (error) {
+        toast("Greška pri uredjenju sednice");
+        console.error("Error editing session:", error);
+      }
+    }
+  };
+  const handleUpdateAgenda = async () => {
+    const form = document.getElementById("agendaForm");
+    if (form.checkValidity()) {
+      try {
+        const result = await updateAgenda(formData, selectedItem);
+        if (result.status == 1) {
+          toast("Uspešno uredjene sednice");
+        } else {
+          toast("Neuspešno uredjene sednice");
+        }
+        setFormData({
+          title: "",
+          description: "",
+          pdf_path: "",
+          agenda_type: "",
+          session: "",
+        });
+        fetchSessions();
+        setActive("list");
+      } catch (error) {
+        toast("Greška pri uredjenju sednice");
+        console.error("Error editing session:", error);
+      }
+    }
+  };
+
   const cancelAgenda = () => {
     setFormData({
       title: "",
@@ -120,6 +212,36 @@ export const Admin = () => {
       session: "",
     });
     setActive("list");
+  };
+  const cancelSession = () => {
+    setFormDataSession({
+      title: "",
+      start_time: "",
+      end_time: "",
+    });
+    setActive("list");
+  };
+
+  const openUpdateSession = (session) => {
+    setFormDataSession({
+      title: session.name,
+      start_date: session.start_time,
+      end_data: session.end_time,
+    });
+    setActive("update_session");
+    setSelectedItem(session.id);
+  };
+
+  const openUpdateAgenda = (agenda) => {
+    setFormData({
+      title: agenda.name,
+      description: agenda.description,
+      pdf_path: agenda.pdf_path,
+      agenda_type: agenda.agenda_type,
+      session_id: agenda.session_id,
+    });
+    setActive("update_agenda");
+    setSelectedItem(agenda._id);
   };
   return (
     <div>
@@ -135,7 +257,11 @@ export const Admin = () => {
               PRIKAZ
             </button>{" "}
             <button
-              className={`${active == "add_session" ? "active-nav" : ""}`}
+              className={`${
+                active == "add_session" || active == "update_session"
+                  ? "active-nav"
+                  : ""
+              }`}
               onClick={() => setActive("add_session")}
             >
               DODAJ NOVU SEDNICU
@@ -147,72 +273,82 @@ export const Admin = () => {
               DODAJ NOVU AGENDU
             </button>
           </div>
-
           {/* ADD AGGENDA */}
-          {active == "add_agenda" && (
+          {(active == "add_agenda" || active == "update_agenda") && (
             <AgendaDialog
               formData={formData}
-              open={active == "add_agenda"}
+              open={active === "add_agenda" || active === "update_agenda"}
               cancelAgenda={cancelAgenda}
               handleInputChange={handleInputChange}
-              handleSave={handleSave}
+              handleSave={
+                active === "add_agenda" ? handleSave : handleUpdateAgenda
+              }
               sessions={sessions}
             ></AgendaDialog>
           )}
-
           {/* ADD SESSION */}
-          {active == "add_session" && (
-            <div className="add mt-10">
-              <p>dodaj sednicu</p>
-            </div>
+          {(active == "add_session" || active == "update_session") && (
+            <SessionDialog
+              formData={formDataSession}
+              open={active === "add_session" || active === "update_session"}
+              cancelSession={cancelSession}
+              handleInputChange={handleInputChangeSession}
+              handleSave={
+                active === "add_session"
+                  ? handleSaveSession
+                  : handleUpdateSession
+              }
+            ></SessionDialog>
           )}
-
           {/* LIST */}
           {active == "list" && (
             <div className="list mt-10">
-              {sessions.map((session) => {
-                return (
-                  <div key={session.id} className="sessions mb-5">
-                    <div className="sessions-tab">
-                      <p>{session.name}</p>
-                      <div className="action-buttons mt-3 mr-10">
-                        <FontAwesomeIcon
-                          onClick={() => deleteSession(session.id)}
-                          className="mx-2 pointer-cursor"
-                          icon={faTrashAlt}
-                        />
-                        <FontAwesomeIcon
-                          onClick={() => alert(`uredi ${session.id}`)}
-                          className="mx-2 pointer-cursor"
-                          icon={faEdit}
-                        />
+              {sessions
+                .slice()
+                .reverse()
+                .map((session) => {
+                  return (
+                    <div key={session.id} className="sessions mb-5">
+                      <div className="sessions-tab">
+                        <p>{session.name}</p>
+                        <div className="action-buttons mt-3 mr-10">
+                          <FontAwesomeIcon
+                            onClick={() => deleteSession(session.id)}
+                            className="mx-2 pointer-cursor"
+                            icon={faTrashAlt}
+                          />
+                          <FontAwesomeIcon
+                            onClick={() => openUpdateSession(session)}
+                            className="mx-2 pointer-cursor"
+                            icon={faEdit}
+                          />
+                        </div>
+                      </div>
+                      <div className="agendas mt-5">
+                        {session.agendas.map((agenda) => (
+                          <div
+                            key={agenda._id}
+                            className="agendas-tab mb-2 ml-10"
+                          >
+                            <p>{agenda.name}</p>
+                            <div className="action-buttons">
+                              <FontAwesomeIcon
+                                onClick={() => deleteAgenda(agenda._id)}
+                                className="mx-2 pointer-cursor"
+                                icon={faTrashAlt}
+                              />
+                              <FontAwesomeIcon
+                                onClick={() => openUpdateAgenda(agenda)}
+                                className="mx-2 pointer-cursor"
+                                icon={faEdit}
+                              />
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <div className="agendas mt-5">
-                      {session.agendas.map((agenda) => (
-                        <div
-                          key={agenda._id}
-                          className="agendas-tab mb-2 ml-10"
-                        >
-                          <p>{agenda.name}</p>
-                          <div className="action-buttons">
-                            <FontAwesomeIcon
-                              onClick={() => deleteAgenda(agenda._id)}
-                              className="mx-2 pointer-cursor"
-                              icon={faTrashAlt}
-                            />
-                            <FontAwesomeIcon
-                              onClick={() => alert(`uredi ${agenda._id}`)}
-                              className="mx-2 pointer-cursor"
-                              icon={faEdit}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </div>
