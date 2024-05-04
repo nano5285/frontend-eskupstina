@@ -63,6 +63,24 @@
   padding: 5px 10px;
 }
 .active-nav {
-  border: solid 2px black!important;
+  border: solid 2px black !important;
   font-weight: bold;
+}
+
+.user-tab {
+  padding: 5px;
+  border: solid 1px silver;
+  border-radius: 5px;
+  position: relative;
+}
+.user-tab p {
+  width: 80%;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+.user-tab p span{
+  font-size: 12px;
+  margin-left: 20px;
+  color: rgb(52, 52, 52);
 }

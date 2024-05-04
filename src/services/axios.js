@@ -7,7 +7,6 @@ import axios from "axios";
 axios.defaults.baseURL =
   process.env.REACT_APP_API_URL ||
   "https://backend-eskupstina.azurewebsites.net/";
-
 /* axios.defaults.baseURL = "http://localhost:8080/";
  */ const signInUser = async (props) => {
   try {
@@ -245,8 +244,48 @@ const updateSession = async (data, id) => {
   }
 };
 
+const deleteUserAPI = async (props) => {
+  try {
+    var result = await axios.delete(`/api/users/${props}`, props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+const createUser = async (props) => {
+  try {
+    const result = await axios.post("/api/create-user", props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+const updateUser = async (data, id) => {
+  try {
+    const result = await axios.put(`/api/update-user?id=${id}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 export {
+  deleteUserAPI,
   createSession,
+  createUser,
   updateSession,
   updateAgenda,
   createAgenda,
@@ -263,4 +302,5 @@ export {
   startVote,
   closeVote,
   resetVote,
+  updateUser,
 };

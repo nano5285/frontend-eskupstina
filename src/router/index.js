@@ -7,10 +7,12 @@ import MainScene from "../pages/main/MainScene";
 import TvScreen from "../pages/tv/TvScreen";
 import { useAuth } from "../authContext";
 import { Admin } from "../pages/admin/Admin";
+import { SuperAdmin } from "../pages/superAdmin/SuperAdmin";
 
 export default function Router() {
   const { isLoggedIn } = useAuth();
   const role = localStorage.getItem("role");
+
   return (
     <BrowserRouter>
       <Routes>
@@ -29,6 +31,7 @@ export default function Router() {
             isLoggedIn && role == "admin" ? <Admin /> : <Navigate to="/" />
           }
         />
+        <Route path="/super-admin" element={<SuperAdmin />} />
       </Routes>
     </BrowserRouter>
   );
