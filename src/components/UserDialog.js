@@ -196,15 +196,32 @@ export default function UserDialog(props) {
                                         className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
                                         onChange={handleInputChange}
                                         value="admin"
-                                        checked={
-                                          formData.role === "admin"
-                                        }
+                                        checked={formData.role === "admin"}
                                       />
                                       <label
                                         htmlFor="push-email"
                                         className="block text-sm font-medium leading-6 text-gray-900"
                                       >
                                         Admin
+                                      </label>
+                                    </div>
+                                    <div className="flex items-center gap-x-3">
+                                      <input
+                                        id="push-email"
+                                        name="role"
+                                        type="radio"
+                                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                        onChange={handleInputChange}
+                                        value="super-admin"
+                                        checked={
+                                          formData.role === "super-admin"
+                                        }
+                                      />
+                                      <label
+                                        htmlFor="push-email"
+                                        className="block text-sm font-medium leading-6 text-gray-900"
+                                      >
+                                        Super Admin
                                       </label>
                                     </div>
                                   </div>

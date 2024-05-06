@@ -53,7 +53,10 @@ export default function LoginScene() {
   useEffect(() => {
     const getUsers = async () => {
       const resp = await getTvUsers();
-      const partyGroup2 = resp.data?.reduce((acc, obj) => {
+      console.log("paja");
+      console.log(resp);
+      const data = resp?.data.filter((item) => item.role != "super-admin");
+      const partyGroup2 = data.reduce((acc, obj) => {
         if (obj !== undefined && obj !== null) {
           const key = obj.party;
           if (!acc[key]) {
@@ -135,7 +138,7 @@ export default function LoginScene() {
           <div>
             <div className="flex flex-row w-full justify-around align-items-center bg-[#f5f5f5] rounded-[20px] p-[10px]">
               <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B] text-2xl md:text-3xl font-bold">
+                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {notVotedNum}
                 </div>
                 <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
@@ -143,7 +146,7 @@ export default function LoginScene() {
                 </div>
               </div>
               <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
+                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {yesNum}
                 </div>
                 <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
@@ -151,7 +154,7 @@ export default function LoginScene() {
                 </div>
               </div>
               <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
+                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {abstrainedNum}
                 </div>
                 <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">
@@ -159,7 +162,7 @@ export default function LoginScene() {
                 </div>
               </div>
               <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
+                <div className="flex items-center justify-center w-[80px] h-[80px] md:w-[80px] md:h-[80px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] text-2xl md:text-3xl font-bold">
                   {noNum}
                 </div>
                 <div className="flex justify-center w-[20px] md:w-[50px] text-[12px] text-center break-words text-xl md:text-xxl font-bold mt-3">

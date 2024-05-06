@@ -28,10 +28,23 @@ export default function Router() {
         <Route
           path="/admin"
           element={
-            isLoggedIn && role == "admin" ? <Admin /> : <Navigate to="/" />
+            isLoggedIn && (role == "admin" || role == "super-admin") ? (
+              <Admin />
+            ) : (
+              <Navigate to="/" />
+            )
           }
         />
-        <Route path="/super-admin" element={<SuperAdmin />} />
+        <Route
+          path="/super-admin"
+          element={
+            isLoggedIn && role == "super-admin" ? (
+              <SuperAdmin />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

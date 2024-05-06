@@ -57,6 +57,7 @@ export default function MainScene(props) {
   const [voteClose, setVoteClose] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [superAdmin, setSuperAdmin] = useState(false);
   const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
   const [dailyAgenda, setDailyAgenda] = useState([]);
@@ -282,15 +283,15 @@ export default function MainScene(props) {
     const getUsers = async () => {
       const userId = localStorage.getItem("userId");
       const resp = await getUser({ id: userId });
-      // Check if the userId exists in localStorage
       if (userId) {
-        // Find the user with the matching ID
         const user = resp.data.find((user) => user._id === userId);
 
-        // Check if the user is found
         if (user.role === "admin") {
-          // Return the user's role
           setAdmin(true);
+          setSuperAdmin(true);
+        }
+        if (user.role === "super-admin") {
+          setSuperAdmin(true);
         }
       }
       const partyGroup2 = resp.data?.reduce((acc, obj) => {
@@ -582,13 +583,12 @@ export default function MainScene(props) {
                 </div>
 
                 <div>
-                  {admin && (
+                  {(admin || superAdmin) && (
                     <div
                       id="logout"
                       className="mt-3 mr-3 "
                       style={{
-                        backgroundColor:
-                          "white",
+                        backgroundColor: "white",
                         padding: "10px",
                         border: "1px solid #ccc",
                         borderRadius: "5px",
@@ -605,6 +605,30 @@ export default function MainScene(props) {
                       onClick={() => navigate("/admin")}
                     >
                       <button className="btn ml-2">Admin</button>
+                    </div>
+                  )}
+                  {superAdmin && (
+                    <div
+                      id="logout"
+                      className="mt-3 mr-3 "
+                      style={{
+                        backgroundColor: "white",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        marginBottom: "2px",
+                        cursor: "pointer",
+                        top: "30px",
+                        height: "40px",
+                        minWidth: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "center",
+                      }}
+                      onClick={() => navigate("/super-admin")}
+                    >
+                      <button className="btn ml-2">Super Admin</button>
                     </div>
                   )}
                 </div>
@@ -794,18 +818,20 @@ export default function MainScene(props) {
                       </div>
                       <div className="w-full h-[4px] bg-[#D9D9D9] mt-[10px]"></div>
                       <div className="w-full h-full flex flex-col">
-                        {users[index].map((userItem) => {
-                          return (
-                            <UserComponent
-                              key={userItem._id}
-                              decision={getDecisionFromAgenda(
-                                userItem._id,
-                                selectedAgenda
-                              )}
-                              name={userItem.name}
-                            />
-                          );
-                        })}
+                        {users[index]
+                          .filter((item) => item.role != "super-admin")
+                          .map((userItem) => {
+                            return (
+                              <UserComponent
+                                key={userItem._id}
+                                decision={getDecisionFromAgenda(
+                                  userItem._id,
+                                  selectedAgenda
+                                )}
+                                name={userItem.name}
+                              />
+                            );
+                          })}
                       </div>
                     </div>
                   );
