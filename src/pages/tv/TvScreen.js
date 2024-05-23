@@ -53,8 +53,6 @@ export default function LoginScene() {
   useEffect(() => {
     const getUsers = async () => {
       const resp = await getTvUsers();
-      console.log("paja");
-      console.log(resp);
       const data = resp?.data.filter((item) => item.role != "super-admin");
       const partyGroup2 = data.reduce((acc, obj) => {
         if (obj !== undefined && obj !== null) {

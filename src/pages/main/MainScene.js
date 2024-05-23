@@ -104,15 +104,18 @@ export default function MainScene(props) {
         setDailyAgenda(dailyAgendas);
 
         currentSession.agendas.forEach((item) => {
-          if (item._id === agendaId) {
+          if (item?._id === agendaId) {
             const voteState = item.vote_state;
             setVotingAgenda(item);
             if (voteState !== 2) {
-              const exists = JSON.parse(item.vote_info)?.some(
-                (element) => element?.user_id === localStorage.getItem("userId")
-              );
-              if (!exists) {
-                setOpen(true);
+              if (item.vote_info) {
+                const exists = JSON.parse(item?.vote_info)?.some(
+                  (element) =>
+                    element?.user_id === localStorage.getItem("userId")
+                );
+                if (!exists) {
+                  setOpen(true);
+                }
               }
             }
           }
@@ -637,6 +640,7 @@ export default function MainScene(props) {
                 <div className="mt-2">
                   {sessions.map((item) => (
                     <p
+                      key={item.id}
                       className="mt-3 text-lg pointer-cursor"
                       id={item.id}
                       onClick={() => sessionChange(item)}
