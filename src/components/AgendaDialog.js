@@ -11,7 +11,7 @@ export default function AgendaDialog(props) {
     handleSave,
     sessions,
   } = props;
-
+  console.log("cheeck")
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={cancelAgenda}>
