@@ -15,6 +15,7 @@ import {
   createSession,
   updateSession,
   updateAgenda,
+  getAgendas,
 } from "../../services/axios";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,19 +23,23 @@ import AgendaDialog from "../../components/AgendaDialog";
 import SessionDialog from "../../components/SessionDialog";
 import AgendaList from "../../components/AgendaList";
 import SessionsList from "../../components/SessionsList";
+import PositionDialog from "../../components/PositionDialog";
 
 export const Admin = () => {
   const [sessions, setSessions] = useState([]);
   const [agendas, setAgendas] = useState([]);
   const [active, setActive] = useState("list");
   const [selectedItem, setSelectedItem] = useState("");
-
+  const [sessionId, setSessionId] = useState();
+  const [orderNum, setOrderNum] = useState();
+  const [currentOrderNum, setCurrentOrderNum] = useState();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     pdf_path: "",
     agenda_type: "",
     session: "",
+    position: "",
   });
   const [formDataSession, setFormDataSession] = useState({
     title: "",
@@ -53,7 +58,14 @@ export const Admin = () => {
   useEffect(() => {
     fetchSessions();
   }, []);
-
+  const fetchAgendas = async (type,text) => {
+    try {
+      const res = await getAgendas(sessionId, type,text);
+      setAgendas(res.data);
+    } catch (error) {
+      console.error("Error fetching sessions:", error);
+    }
+  };
   const deleteAgenda = async (agendaId) => {
     try {
       const confirmed = window.confirm("Da li želite da obrišete agendu?");
@@ -64,13 +76,13 @@ export const Admin = () => {
           toast("Brisanje agende upešno");
           fetchSessions();
         } else {
-          toast("Brisanje agende neupešno");
+          toast.error("Brisanje agende neupešno");
         }
       } else {
-        toast("Brisanje agende odloženo");
+        toast.error("Brisanje agende odloženo");
       }
     } catch (error) {
-      toast("Greška prilikom brisanja agende");
+      toast.error("Greška prilikom brisanja agende");
       console.error("Error deleting agenda:", error);
     }
   };
@@ -85,19 +97,20 @@ export const Admin = () => {
           toast("Brisanje sednice upešno");
           fetchSessions();
         } else {
-          toast("Brisanje sednice neupešno");
+          toast.error("Brisanje sednice neupešno");
         }
       } else {
-        toast("Brisanje sesije odloženo");
+        toast.error("Brisanje sesije odloženo");
       }
     } catch (error) {
-      toast("Greška prilikom brisanja sesije");
+      toast.error("Greška prilikom brisanja sesije");
       console.error("Error deleting session:", error);
     }
   };
 
   const handleInputChange = (event) => {
     const { name, value, files } = event.target;
+    
     setFormData((prevState) => ({
       ...prevState,
       [name]: files ? files[0] : value,
@@ -127,7 +140,7 @@ export const Admin = () => {
         fetchSessions();
         setActive("list");
       } catch (error) {
-        toast("Greška pri kreiranju agende");
+        toast.error("Greška pri kreiranju agende");
         console.error("Error creating agenda:", error);
       }
     }
@@ -151,7 +164,7 @@ export const Admin = () => {
         fetchSessions();
         setActive("add_agenda");
       } catch (error) {
-        toast("Greška pri kreiranju sednice");
+        toast.error("Greška pri kreiranju sednice");
         console.error("Error creating session:", error);
       }
     }
@@ -165,7 +178,7 @@ export const Admin = () => {
         if (result.status == 1) {
           toast("Uspešno uredjene sednice");
         } else {
-          toast("Neuspešno uredjene sednice");
+          toast.error("Neuspešno uredjene sednice");
         }
         setFormDataSession({
           title: "",
@@ -175,11 +188,36 @@ export const Admin = () => {
         fetchSessions();
         setActive("list");
       } catch (error) {
-        toast("Greška pri uredjenju sednice");
+        toast.error("Greška pri uredjenju sednice");
         console.error("Error editing session:", error);
       }
     }
   };
+  // const handleChangeOrder = async (order) => {
+  //     if (orderNum) {
+  //       try {
+  //         const result = await updateAgendaOrder(orderNum, selectedItem);
+  //         if (result.status == 1) {
+  //           toast("Uspešno uredjene sednice");
+  //           setOrderNum("");
+  //           setActive("Agenda")
+  //           setSelectedItem("");
+  //         } else {
+  //           toast("Neuspešno uredjene sednice");
+  //         }
+  //         setFormDataSession({
+  //           title: "",
+  //           start_time: "",
+  //           end_time: "",
+  //         });
+  //         fetchSessions();
+  //         setActive("list");
+  //       } catch (error) {
+  //         toast("Greška pri uredjenju sednice");
+  //         console.error("Error editing session:", error);
+  //       }
+  //     }
+  //   };
   const handleUpdateAgenda = async () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
@@ -188,7 +226,7 @@ export const Admin = () => {
         if (result.status == 1) {
           toast("Uspešno uredjene sednice");
         } else {
-          toast("Neuspešno uredjene sednice");
+          toast.error("Neuspešno uredjene sednice");
         }
         setFormData({
           title: "",
@@ -196,16 +234,42 @@ export const Admin = () => {
           pdf_path: "",
           agenda_type: "",
           session: "",
+          position: "",
         });
         fetchSessions();
         setActive("list");
       } catch (error) {
-        toast("Greška pri uredjenju sednice");
+        toast.error("Greška pri uredjenju sednice");
         console.error("Error editing session:", error);
       }
     }
   };
-
+const handleUpdateOrder = async () => {
+    const form = document.getElementById("orderForm");
+    if (form.checkValidity()) {
+      try {
+        const result = await updateAgenda(formData, selectedItem);
+        if (result.status == 1) {
+          toast("Uspešno uredjene sednice");
+        } else {
+          toast.error("Neuspešno uredjene sednice");
+        }
+        setFormData({
+          title: "",
+          description: "",
+          pdf_path: "",
+          agenda_type: "",
+          session: "",
+          position: "",
+        });
+        fetchAgendas();
+        setActive("Agenda");
+      } catch (error) {
+        toast.error("Greška pri uredjenju sednice");
+        console.error("Error editing session:", error);
+      }
+    }
+  };
   const cancelAgenda = () => {
     setFormData({
       title: "",
@@ -213,8 +277,9 @@ export const Admin = () => {
       pdf_path: "",
       agenda_type: "",
       session: "",
+      position: "",
     });
-    setActive("list");
+    setActive("Agenda");
   };
   const cancelSession = () => {
     setFormDataSession({
@@ -244,6 +309,19 @@ export const Admin = () => {
       session_id: agenda.session_id,
     });
     setActive("update_agenda");
+    setSelectedItem(agenda._id);
+  };
+ const openUpdateOrder = (agenda) => {
+    setFormData({
+      title: agenda.name,
+      description: agenda.description,
+      pdf_path: agenda.pdf_path,
+      agenda_type: agenda.agenda_type,
+      session_id: agenda.session_id,
+      position: "",
+    });
+    setCurrentOrderNum(agenda?.position);
+    setActive("change_order");
     setSelectedItem(agenda._id);
   };
   console.log(sessions, "sessions");
@@ -304,17 +382,45 @@ export const Admin = () => {
               }
             ></SessionDialog>
           )}
+          {active === "change_order" && (
+            <PositionDialog
+              formData={formData}
+              setOrderNum={setOrderNum}
+              currentOrderNum={currentOrderNum}
+              orderNum={orderNum}
+              open={active === "change_order"}
+              cancelSession={cancelAgenda}
+              handleInputChange={handleInputChange}
+              handleSave={handleUpdateOrder}
+            ></PositionDialog>
+          )}
           {/* LIST */}
           {active == "list" && (
             <div className="list mt-10">
-              <SessionsList sessions={sessions}setActive={setActive} setAgendas={setAgendas} openUpdateSession={openUpdateSession} deleteSession={deleteSession}/>
+              <SessionsList
+                sessions={sessions}
+                setSessionId={setSessionId}
+                setActive={setActive}
+                setAgendas={setAgendas}
+                openUpdateSession={openUpdateSession}
+                deleteSession={deleteSession}
+              />
             </div>
           )}
           {active === "Agenda" && (
- <div className="list mt-10">
-              <AgendaList agendas={agendas} openUpdateAgenda={openUpdateAgenda} deleteAgenda={deleteAgenda}/>
+            <div className="list mt-10">
+              <AgendaList
+                agendas={agendas}
+                setSelectedItem={setSelectedItem}
+                setCurrentOrderNum={setCurrentOrderNum}
+                openUpdateAgenda={openUpdateAgenda}
+                openUpdateOrder={openUpdateOrder}
+                setActive={setActive}
+                onFilter={fetchAgendas}
+                deleteAgenda={deleteAgenda}
+              />
             </div>
-)}
+          )}
         </div>
       </div>
     </div>

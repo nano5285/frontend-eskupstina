@@ -226,7 +226,7 @@ const updateAgenda = async (props, id) => {
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
     formData.append("session", props.session);
-
+    formData.append("position",props.position)
     const result = await axios.put(`/api/update-agenda?id=${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -237,6 +237,7 @@ const updateAgenda = async (props, id) => {
     return error.response;
   }
 };
+
 const resetVote = async (props) => {
   try {
     var result = await axios.post("/api/reset_vote/", props, {
@@ -262,7 +263,24 @@ const getSessions = async (props) => {
     return error.response;
   }
 };
-
+const getAgendas = async (id,type,text) => {
+const params = new URLSearchParams();
+ 
+    
+    if (type) params.append('agenda_type', type);
+if (id) params.append('session_id', id);
+if (text) params.append('search', text);
+  try {
+    var result = await axios.get(`/api/get_all_agendas?${params}`, params, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 const deleteAgendaAPI = async (props) => {
   try {
     var result = await axios.delete(`/api/agenda/${props}`, props, {
@@ -374,5 +392,6 @@ export {
   updateUser,
   usersList,
   sessionsList,
-  agendasList
+  agendasList,
+getAgendas,
 };

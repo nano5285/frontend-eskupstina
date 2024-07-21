@@ -227,6 +227,26 @@ export default function AgendaDialog(props) {
                                 />
                               </div>
                             </div>
+  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                              <label
+                                htmlFor="about"
+                                className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
+                              >
+                                Order Number
+                              </label>
+                              <div className="mt-2 sm:col-span-2 sm:mt-0">
+                                <input
+                                  type="Number"
+                                  id="about"
+                                  name="position"
+                                  rows={1}
+                                  className="block w-full p-2 max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  value={formData?.position}
+                                  onChange={handleInputChange}
+                                  //   value={formData.pdf_path}
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -253,6 +273,7 @@ export default function AgendaDialog(props) {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={handleSave}
+                    disabled={!formData?.title||!formData?.description ||!formData?.pdf_path||!formData?.agenda_type||!formData?.session||!formData?.position}
                   >
                     Save
                   </button>

@@ -2,8 +2,8 @@ import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
-export default function SessionDialog(props) {
-  const { formData, open, cancelSession, handleInputChange, handleSave } =
+export default function PositionDialog(props) {
+  const { formData, open, cancelSession, handleInputChange, handleSave,orderNum,currentOrderNum,setOrderNum } =
     props;
 
   return (
@@ -52,9 +52,9 @@ export default function SessionDialog(props) {
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
                     >
-                      Dodaj Sesiju
+                      order change
                     </Dialog.Title>
-                    <form id="sessionForm">
+                    <form id="orderForm">
                       <div className="space-y-12 sm:space-y-16">
                         <div className="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
                           <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -62,17 +62,18 @@ export default function SessionDialog(props) {
                               htmlFor="title"
                               className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
                             >
-                              Naziv
+                              Current Order
                             </label>
                             <div className="mt-2 sm:col-span-2 sm:mt-0 ">
                               <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
                                 <input
-                                  type="text"
+                                  type="Number"
                                   name="title"
                                   id="title"
                                   className="block w-full max-w-2xl px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                   onChange={handleInputChange}
-                                  value={formData.title}
+                                  value={currentOrderNum}
+                                  readOnly
                                 />
                               </div>
                             </div>
@@ -83,16 +84,16 @@ export default function SessionDialog(props) {
                               htmlFor="start_time"
                               className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
                             >
-                              Start Time
+                             Change Order
                             </label>
                             <div className="mt-2 sm:col-span-2 sm:mt-0 ">
                               <input
-                                type="datetime-local"
-                                name="start_time"
-                                id="start_time"
+                                type="Number"
+                                name="position"
+                                // id="start_time"
                                 className="block w-full max-w-2xl rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                 onChange={handleInputChange}
-                                value={formData.start_time}
+                                value={orderNum}
                               />
                             </div>
                           </div>
@@ -125,7 +126,7 @@ export default function SessionDialog(props) {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={handleSave}
-                    disabled={!formData?.title ||!formData?.start_time}
+                    disabled={!formData?.position}
                   >
                     Save
                   </button>
