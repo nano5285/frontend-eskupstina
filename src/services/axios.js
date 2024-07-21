@@ -67,12 +67,78 @@ const getUser = async (props) => {
     return error.response;
   }
 };
+
+
 const getTvUsers = async (props) => {
   try {
     var result = await axios.get("/api/tv-users/", {
       headers: {
         "Content-Type": "application/json",
       },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+// ------------------------------------------------------
+// Get users list
+// ------------------------------------------------------
+
+const usersList = async (page,search) => {
+  try {
+    var result = await axios.get("/api/users/list/", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params : {
+        page : page,
+        search : search
+      }
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+
+// ------------------------------------------------------
+// Get sessions list
+// ------------------------------------------------------
+
+const sessionsList = async (page,search) => {
+  try {
+    var result = await axios.get("/api/sessions/list/", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params : {
+        page : page,
+        search : search
+      }
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+// ------------------------------------------------------
+// Get agendas list
+// ------------------------------------------------------
+
+const agendasList = async (page,search) => {
+  try {
+    var result = await axios.get("/api/agendas/list/", {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params : {
+        page : page,
+        search : search
+      }
     });
     return result.data;
   } catch (error) {
@@ -306,4 +372,7 @@ export {
   closeVote,
   resetVote,
   updateUser,
+  usersList,
+  sessionsList,
+  agendasList
 };

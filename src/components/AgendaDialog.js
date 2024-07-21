@@ -40,7 +40,7 @@ export default function AgendaDialog(props) {
             >
               <Dialog.Panel
                 // style={{ maxWidth: "40%" }}
-                className="relative transform max-w-lg overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full max-w-lg sm:p-6"
+                className="relative transform max-w-lg overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full sm:p-6"
               >
                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                   <button

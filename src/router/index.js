@@ -8,6 +8,7 @@ import TvScreen from "../pages/tv/TvScreen";
 import { useAuth } from "../authContext";
 import { Admin } from "../pages/admin/Admin";
 import { SuperAdmin } from "../pages/superAdmin/SuperAdmin";
+import Statistics from "../pages/Statistics";
 
 export default function Router() {
   const { isLoggedIn } = useAuth();
@@ -40,6 +41,16 @@ export default function Router() {
           element={
             isLoggedIn && role == "super-admin" ? (
               <SuperAdmin />
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            isLoggedIn ? (
+              <Statistics />
             ) : (
               <Navigate to="/" />
             )
