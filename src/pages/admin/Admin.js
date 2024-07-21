@@ -24,6 +24,7 @@ import SessionDialog from "../../components/SessionDialog";
 import AgendaList from "../../components/AgendaList";
 import SessionsList from "../../components/SessionsList";
 import PositionDialog from "../../components/PositionDialog";
+import { Button } from "@material-tailwind/react";
 
 export const Admin = () => {
   const [sessions, setSessions] = useState([]);
@@ -33,6 +34,8 @@ export const Admin = () => {
   const [sessionId, setSessionId] = useState();
   const [orderNum, setOrderNum] = useState();
   const [currentOrderNum, setCurrentOrderNum] = useState();
+  const [from, setFrom] = useState();
+  const [fromSession,setFromSession] = useState();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -139,6 +142,8 @@ export const Admin = () => {
         });
         fetchSessions();
         setActive("list");
+        setFrom("")
+        setFromSession("");
       } catch (error) {
         toast.error("Greška pri kreiranju agende");
         console.error("Error creating agenda:", error);
@@ -163,6 +168,8 @@ export const Admin = () => {
         });
         fetchSessions();
         setActive("add_agenda");
+        setFrom("Add")
+        setFromSession(result?.data?.name)
       } catch (error) {
         toast.error("Greška pri kreiranju sednice");
         console.error("Error creating session:", error);
@@ -331,29 +338,35 @@ const handleUpdateOrder = async () => {
       <div className="admin">
         <p className="heading">Admin panel</p>
         <div className="admin-content mt-10">
-          <div className="admin-content-nav">
-            <button
-              className={`${active == "list" ? "active-nav" : ""}`}
-              onClick={() => setActive("list")}
-            >
-              PRIKAZ
-            </button>{" "}
-            <button
-              className={`${
-                active == "add_session" || active == "update_session"
-                  ? "active-nav"
-                  : ""
-              }`}
-              onClick={() => setActive("add_session")}
-            >
-              DODAJ NOVU SEDNICU
-            </button>
-            <button
+          <div className=" flex justify-between">
+<Button
+                variant="filled"
+                color="blue"
+                className={`${active == "list" ? "active-nav" : ""}`}
+                onClick={() => setActive("list")}
+              >
+                PRIKAZ
+              </Button>
+{active !== "Agenda"?
+            <><Button
+                className={`${active == "add_session" || active == "update_session"
+                    ? "active-nav"
+                    : ""}`}
+                color="blue"
+                variant="filled"
+                onClick={() => setActive("add_session")}
+              >
+                  DODAJ NOVU SEDNICU
+                </Button></>
+:
+            <Button
               className={`${active == "add_agenda" ? "active-nav" : ""}`}
+color="blue"
+variant="filled"
               onClick={() => setActive("add_agenda")}
             >
               DODAJ NOVU AGENDU
-            </button>
+            </Button>}
           </div>
           {/* ADD AGGENDA */}
           {(active == "add_agenda" || active == "update_agenda") && (
@@ -366,6 +379,8 @@ const handleUpdateOrder = async () => {
                 active === "add_agenda" ? handleSave : handleUpdateAgenda
               }
               sessions={sessions}
+              isFrom={from}
+              fromSession={fromSession}
             ></AgendaDialog>
           )}
           {/* ADD SESSION */}

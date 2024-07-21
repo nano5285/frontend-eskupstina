@@ -198,9 +198,11 @@ setSessionId
           Previous
         </Button>
         <div className="flex items-center gap-2">
-          <IconButton variant="outlined" size="sm">
+         {Array.from({length:totalPage},(_,index)=>index+1).map(page =>(
+ <IconButton variant="outlined" size="sm">
             {page}
           </IconButton>
+))}
         </div>
         <Button
           variant="outlined"

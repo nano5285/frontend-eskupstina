@@ -10,8 +10,10 @@ export default function AgendaDialog(props) {
     handleInputChange,
     handleSave,
     sessions,
+    isFrom,
+fromSession
   } = props;
-  console.log("cheeck")
+  console.log(fromSession,"cheeck")
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={cancelAgenda}>
@@ -178,7 +180,36 @@ export default function AgendaDialog(props) {
                                     </div>
                                     <div className="mt-1 sm:col-span-2 sm:mt-0">
                                       <div className="max-w-lg">
+{isFrom==="Add"?
+<div className="mt-6 space-y-6">
+
+
+                                         
+                                            <div
+                                              key={fromSession}
+                                              className="flex items-center gap-x-3"
+                                            >
+                                              <input
+                                                id="push-email"
+                                                name="session"
+                                                type="radio"
+                                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                                // onChange={handleInputChange}
+                                                checked={fromSession}
+                                                value={fromSession}
+                                              />
+                                              <label
+                                                htmlFor="push-email"
+                                                className="block text-sm font-medium leading-6 text-gray-900"
+                                              >
+                                                {fromSession}
+                                              </label>
+                                            </div>
+                                        </div>
+:
                                         <div className="mt-6 space-y-6">
+
+
                                           {sessions.map((item) => (
                                             <div
                                               key={item.id}
@@ -199,8 +230,9 @@ export default function AgendaDialog(props) {
                                                 {item.name}
                                               </label>
                                             </div>
+
                                           ))}
-                                        </div>
+                                        </div>}
                                       </div>
                                     </div>
                                   </div>
