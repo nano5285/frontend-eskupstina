@@ -20,9 +20,12 @@ import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AgendaDialog from "../../components/AgendaDialog";
 import SessionDialog from "../../components/SessionDialog";
+import AgendaList from "../../components/AgendaList";
+import SessionsList from "../../components/SessionsList";
 
 export const Admin = () => {
   const [sessions, setSessions] = useState([]);
+  const [agendas, setAgendas] = useState([]);
   const [active, setActive] = useState("list");
   const [selectedItem, setSelectedItem] = useState("");
 
@@ -146,7 +149,7 @@ export const Admin = () => {
           end_time: "",
         });
         fetchSessions();
-        setActive("list");
+        setActive("add_agenda");
       } catch (error) {
         toast("Greška pri kreiranju sednice");
         console.error("Error creating session:", error);
@@ -243,6 +246,7 @@ export const Admin = () => {
     setActive("update_agenda");
     setSelectedItem(agenda._id);
   };
+  console.log(sessions, "sessions");
   return (
     <div>
       <AdminNavigation />
@@ -303,54 +307,14 @@ export const Admin = () => {
           {/* LIST */}
           {active == "list" && (
             <div className="list mt-10">
-              {sessions
-                .slice()
-                .reverse()
-                .map((session) => {
-                  return (
-                    <div key={session.id} className="sessions mb-5">
-                      <div className="sessions-tab">
-                        <p>{session.name}</p>
-                        <div className="action-buttons mt-3 mr-10">
-                          <FontAwesomeIcon
-                            onClick={() => deleteSession(session.id)}
-                            className="mx-2 pointer-cursor"
-                            icon={faTrashAlt}
-                          />
-                          <FontAwesomeIcon
-                            onClick={() => openUpdateSession(session)}
-                            className="mx-2 pointer-cursor"
-                            icon={faEdit}
-                          />
-                        </div>
-                      </div>
-                      <div className="agendas mt-5">
-                        {session.agendas.map((agenda) => (
-                          <div
-                            key={agenda._id}
-                            className="agendas-tab mb-2 ml-10"
-                          >
-                            <p>{agenda.name}</p>
-                            <div className="action-buttons">
-                              <FontAwesomeIcon
-                                onClick={() => deleteAgenda(agenda._id)}
-                                className="mx-2 pointer-cursor"
-                                icon={faTrashAlt}
-                              />
-                              <FontAwesomeIcon
-                                onClick={() => openUpdateAgenda(agenda)}
-                                className="mx-2 pointer-cursor"
-                                icon={faEdit}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+              <SessionsList sessions={sessions}setActive={setActive} setAgendas={setAgendas} openUpdateSession={openUpdateSession} deleteSession={deleteSession}/>
             </div>
           )}
+          {active === "Agenda" && (
+ <div className="list mt-10">
+              <AgendaList agendas={agendas} openUpdateAgenda={openUpdateAgenda} deleteAgenda={deleteAgenda}/>
+            </div>
+)}
         </div>
       </div>
     </div>

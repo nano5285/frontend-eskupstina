@@ -33,8 +33,8 @@ export default function SessionDialog(props) {
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel
-                style={{ maxWidth: "40%" }}
-                className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full max-w-lg sm:p-6"
+                // style={{ maxWidth: "25%" }}
+                className="relative transform max-w-lg overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full max-w-lg sm:p-6"
               >
                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                   <button
@@ -46,8 +46,8 @@ export default function SessionDialog(props) {
                     <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                <div className=" sm:items-start">
+                  <div className=" text-center  sm:mt-0 sm:text-left">
                     <Dialog.Title
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
@@ -70,7 +70,7 @@ export default function SessionDialog(props) {
                                   type="text"
                                   name="title"
                                   id="title"
-                                  className="block w-full max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  className="block w-full max-w-2xl px-2 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                   onChange={handleInputChange}
                                   value={formData.title}
                                 />
@@ -90,14 +90,14 @@ export default function SessionDialog(props) {
                                 type="datetime-local"
                                 name="start_time"
                                 id="start_time"
-                                className="block w-full max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                className="block w-full max-w-2xl rounded-md border-0 py-1.5 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                 onChange={handleInputChange}
                                 value={formData.start_time}
                               />
                             </div>
                           </div>
 
-                          <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                          {/* <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                             <label
                               htmlFor="end_time"
                               className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
@@ -114,7 +114,7 @@ export default function SessionDialog(props) {
                                 value={formData.end_time}
                               />
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </form>

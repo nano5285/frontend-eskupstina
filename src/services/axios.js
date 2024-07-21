@@ -7,9 +7,10 @@ import axios from "axios";
 
 axios.defaults.baseURL =
   process.env.REACT_APP_API_URL ||
-  "https://backend-eskupstina.azurewebsites.net/";
+  // "https://backend-eskupstina.azurewebsites.net/";
+  "http://localhost:5005/"
 
-/*  axios.defaults.baseURL = "http://localhost:8080/";
+/*  axios.defaults.baseURL = "http://localhost:5005/";
  */ const signInUser = async (props) => {
   try {
     var result = await axios.post("/api/login/", props, {

@@ -39,8 +39,8 @@ export default function AgendaDialog(props) {
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel
-                style={{ maxWidth: "40%" }}
-                className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full max-w-lg sm:p-6"
+                // style={{ maxWidth: "40%" }}
+                className="relative transform max-w-lg overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg w-full max-w-lg sm:p-6"
               >
                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                   <button
@@ -53,7 +53,7 @@ export default function AgendaDialog(props) {
                   </button>
                 </div>
                 <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div className="mt-3 text-center  sm:mt-0 sm:text-left">
                     <Dialog.Title
                       as="h3"
                       className="text-base font-semibold leading-6 text-gray-900"
@@ -220,7 +220,7 @@ export default function AgendaDialog(props) {
                                   id="about"
                                   name="pdf_path"
                                   rows={3}
-                                  className="block w-full max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  className="block w-full p-2 max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                   defaultValue={""}
                                   onChange={handleInputChange}
                                   //   value={formData.pdf_path}
