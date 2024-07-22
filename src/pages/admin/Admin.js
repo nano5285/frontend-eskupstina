@@ -287,6 +287,7 @@ const handleUpdateOrder = async () => {
       position: "",
     });
     setActive("Agenda");
+    console.log();
   };
   const cancelSession = () => {
     setFormDataSession({
