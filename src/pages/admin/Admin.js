@@ -131,7 +131,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await createAgenda(formData);
+        const result = await createAgenda(formData,fromSession);
         toast("Uspešno kreirana agenda");
         setFormData({
           title: "",
@@ -229,7 +229,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await updateAgenda(formData, selectedItem);
+        const result = await updateAgenda(formData, selectedItem,fromSession);
         if (result.status == 1) {
           toast("Uspešno uredjene sednice");
         } else {
@@ -296,7 +296,6 @@ const handleUpdateOrder = async () => {
     });
     setActive("list");
   };
-
   const openUpdateSession = (session) => {
     setFormDataSession({
       title: session.name,
@@ -363,7 +362,7 @@ const handleUpdateOrder = async () => {
               className={`${active == "add_agenda" ? "active-nav" : ""}`}
 color="blue"
 variant="filled"
-              onClick={() => setActive("add_agenda")}
+              onClick={() => {setActive("add_agenda")}}
             >
               DODAJ NOVU AGENDU
             </Button>}

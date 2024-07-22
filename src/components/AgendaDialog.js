@@ -11,9 +11,9 @@ export default function AgendaDialog(props) {
     handleSave,
     sessions,
     isFrom,
-fromSession
+    fromSession,
   } = props;
-  console.log(fromSession,"cheeck")
+  console.log(fromSession, "cheeck");
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={cancelAgenda}>
@@ -169,7 +169,7 @@ fromSession
                                 </fieldset>
                               </div>
 
-                              <div className=" space-y-10 sm:pb-0">
+                              {/* <div className=" space-y-10 sm:pb-0">
                                 <fieldset>
                                   <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4 sm:py-6">
                                     <div
@@ -180,38 +180,33 @@ fromSession
                                     </div>
                                     <div className="mt-1 sm:col-span-2 sm:mt-0">
                                       <div className="max-w-lg">
-
-<div className="mt-6 space-y-6">
-
-
-                                         
-                                            <div
-                                              key={fromSession}
-                                              className="flex items-center gap-x-3"
+                                        <div className="mt-6 space-y-6">
+                                          <div
+                                            key={fromSession}
+                                            className="flex items-center gap-x-3"
+                                          >
+                                            <input
+                                              id="push-email"
+                                              name="session"
+                                              type="radio"
+                                              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                              // onChange={handleInputChange}
+                                              checked={fromSession}
+                                              value={fromSession}
+                                            />
+                                            <label
+                                              htmlFor="push-email"
+                                              className="block text-sm font-medium leading-6 text-gray-900"
                                             >
-                                              <input
-                                                id="push-email"
-                                                name="session"
-                                                type="radio"
-                                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                                // onChange={handleInputChange}
-                                                checked={fromSession}
-                                                value={fromSession}
-                                              />
-                                              <label
-                                                htmlFor="push-email"
-                                                className="block text-sm font-medium leading-6 text-gray-900"
-                                              >
-                                                {fromSession}
-                                              </label>
-                                            </div>
+                                              {fromSession}
+                                            </label>
+                                          </div>
                                         </div>
-
                                       </div>
                                     </div>
                                   </div>
                                 </fieldset>
-                              </div>
+                              </div> */}
                             </div>
                             <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                               <label
@@ -233,7 +228,7 @@ fromSession
                                 />
                               </div>
                             </div>
-  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                            <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                               <label
                                 htmlFor="about"
                                 className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
@@ -279,7 +274,13 @@ fromSession
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={handleSave}
-                    disabled={!formData?.title||!formData?.description ||!formData?.pdf_path||!formData?.agenda_type||!formData?.session||!formData?.position}
+                    disabled={
+                      !formData?.title ||
+                      !formData?.description ||
+                      !formData?.pdf_path ||
+                      !formData?.agenda_type ||
+                      !formData?.position
+                    }
                   >
                     Save
                   </button>
