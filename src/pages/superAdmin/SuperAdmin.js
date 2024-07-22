@@ -164,7 +164,7 @@ export const SuperAdmin = () => {
             </button>
           </div>
           <div className="list mt-10">
-            {users.map((user) => {
+            {users?.map((user) => {
               return (
                 <div key={user.id} className="sessions mb-2">
                   <div className="user-tab">
