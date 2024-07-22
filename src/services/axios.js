@@ -109,7 +109,7 @@ const usersList = async (page,search, sort) => {
 // Get sessions list
 // ------------------------------------------------------
 
-const sessionsList = async (page,search) => {
+const sessionsList = async (page,search,sort) => {
   try {
     var result = await axios.get("/api/sessions/list/", {
       headers: {
@@ -117,7 +117,8 @@ const sessionsList = async (page,search) => {
       },
       params : {
         page : page,
-        search : search
+        search : search,
+        sort : sort,
       }
     });
     return result.data;
