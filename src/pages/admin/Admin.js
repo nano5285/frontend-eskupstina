@@ -419,6 +419,7 @@ variant="filled"
                 setAgendas={setAgendas}
                 openUpdateSession={openUpdateSession}
                 deleteSession={deleteSession}
+                setFromSession={setFromSession}
               />
             </div>
           )}
