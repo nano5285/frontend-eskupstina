@@ -1,4 +1,4 @@
-import { EyeIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { EyeIcon,ChevronDownIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Card,
@@ -57,6 +57,11 @@ export default function AgendasTable() {
   const closeVotersModal = () => {
     setOpenModal(false);
   };
+
+  const handleSortFieldChange = (value) => {
+    setSortField(value);
+  };
+  
   return (
     <Card className="table_background">
       <CardHeader floated={false} shadow={false} className="rounded-none">
