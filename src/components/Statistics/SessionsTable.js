@@ -43,7 +43,7 @@ export default function SessionsTable() {
   };
 
   return (
-    <Card>
+    <Card className="table_background">
       <CardHeader floated={false} shadow={false} className="rounded-none">
         <div className="mb-8 flex items-center justify-between gap-8">
           <div>

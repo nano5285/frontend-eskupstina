@@ -15,7 +15,7 @@ import { agendasList } from "../../services/axios";
 
 export default function AgendasTable() {
 
-  const TABLE_HEAD = ["Sr.No.", "Name", "Description", "Type", "Vote" ];
+  const TABLE_HEAD = ["Sr.No.", "Name", "Description", "Type", "Voters" ];
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [totalPage, setTotalPage] = useState(1);
@@ -43,7 +43,7 @@ export default function AgendasTable() {
   };
 
   return (
-    <Card>
+    <Card className="table_background">
       <CardHeader floated={false} shadow={false} className="rounded-none">
         <div className="mb-8 flex items-center justify-between gap-8">
           <div>
@@ -145,7 +145,7 @@ export default function AgendasTable() {
                           color="blue-gray"
                           className="font-normal w-40 opacity-70"
                         >
-                          {item?.vote_state}
+                          {item?.voters?.length || 0 }
                         </Typography>
                       </div>
                     </div>

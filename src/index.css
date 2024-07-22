@@ -22,3 +22,9 @@ code {
 .pointer-cursor {
   cursor: pointer;
 }
+
+.table_background {
+  background-color: #f7f7fc;
+  margin-bottom: 150px;
+}
+

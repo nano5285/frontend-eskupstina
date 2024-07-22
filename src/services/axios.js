@@ -86,7 +86,7 @@ const getTvUsers = async (props) => {
 // Get users list
 // ------------------------------------------------------
 
-const usersList = async (page,search) => {
+const usersList = async (page,search, sort) => {
   try {
     var result = await axios.get("/api/users/list/", {
       headers: {
@@ -94,7 +94,8 @@ const usersList = async (page,search) => {
       },
       params : {
         page : page,
-        search : search
+        search : search,
+        sort : sort,
       }
     });
     return result.data;
