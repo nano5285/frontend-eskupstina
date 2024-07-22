@@ -1,4 +1,4 @@
-import { MagnifyingGlassIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, ChevronDownIcon, EyeIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Card,
@@ -12,6 +12,9 @@ import {
   MenuHandler,
   MenuList,
   MenuItem,
+  Dialog,
+  DialogBody,
+  DialogFooter,
 } from "@material-tailwind/react";
 import React, { useEffect, useState } from "react";
 import { usersList } from "../../services/axios";
@@ -23,6 +26,7 @@ export default function UsersTable() {
   const [totalPage, setTotalPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [sortField, setSortField] = useState("");
+  const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
     getUsersList(page, search, sortField);
@@ -47,6 +51,13 @@ export default function UsersTable() {
 
   const handleSortFieldChange = (value) => {
     setSortField(value);
+  };
+
+  const openVotersModal = () => {
+    setOpenModal(true);
+  };
+  const closeVotersModal = () => {
+    setOpenModal(false);
   };
 
   return (
@@ -173,6 +184,18 @@ export default function UsersTable() {
                       </div>
                     </div>
                   </td>
+                  <td className={`${classes} col-2`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col">
+                        <Button
+                          className="ml-2 bg-blue-500 text-white rounded p-2"
+                          onClick={() => openVotersModal()}
+                        >
+                          <EyeIcon className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               );
             })}
@@ -202,6 +225,111 @@ export default function UsersTable() {
           Next
         </Button>
       </CardFooter>
+      <Dialog open={openModal} onClose={closeVotersModal} fullWidth maxWidth="lg">
+        <DialogBody
+          divider
+          style={{
+            maxHeight: '80vh',
+            overflowY: 'auto',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <div style={{ flex: '1 1 auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {TABLE_HEAD.map((head) => (
+                    <th
+                      key={head}
+                      className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
+                    >
+                      <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal leading-none opacity-70"
+                      >
+                        {head}
+                      </Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {users?.map((item, index) => {
+                  const isLast = index === users.length - 1;
+                  const classes = isLast
+                    ? "p-4"
+                    : "p-4 border-b border-blue-gray-50";
+                  return (
+                    <tr key={index}>
+                      <td className={classes}>
+                        <div className="flex items-center gap-3">
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-bold"
+                          >
+                            {index + 1}
+                          </Typography>
+                        </div>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {item?.name}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {item?.email}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {item?.city}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <Typography
+                          variant="small"
+                          color="blue-gray"
+                          className="font-normal"
+                        >
+                          {item?.party}
+                        </Typography>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="red"
+            onClick={closeVotersModal}
+            className="text-red-500"
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
     </Card>
   );
 }
