@@ -131,7 +131,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await createAgenda(formData);
+        const result = await createAgenda(formData,sessionId);
         toast("Uspešno kreirana agenda");
         setFormData({
           title: "",
@@ -140,8 +140,8 @@ export const Admin = () => {
           agenda_type: "",
           session: "",
         });
-        fetchSessions();
-        setActive("list");
+        fetchAgendas();
+        setActive("Agenda");
         setFrom("")
         setFromSession("");
       } catch (error) {
@@ -169,7 +169,7 @@ export const Admin = () => {
         fetchSessions();
         setActive("add_agenda");
         setFrom("Add")
-        setFromSession(result?.data?.name)
+        setFromSession(result?.data?.id)
       } catch (error) {
         toast.error("Greška pri kreiranju sednice");
         console.error("Error creating session:", error);
@@ -229,7 +229,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await updateAgenda(formData, selectedItem);
+        const result = await updateAgenda(formData, selectedItem,sessionId);
         if (result.status == 1) {
           toast("Uspešno uredjene sednice");
         } else {
@@ -243,8 +243,8 @@ export const Admin = () => {
           session: "",
           position: "",
         });
-        fetchSessions();
-        setActive("list");
+        fetchAgendas();
+        setActive("Agenda");
       } catch (error) {
         toast.error("Greška pri uredjenju sednice");
         console.error("Error editing session:", error);
@@ -296,7 +296,6 @@ const handleUpdateOrder = async () => {
     });
     setActive("list");
   };
-
   const openUpdateSession = (session) => {
     setFormDataSession({
       title: session.name,
@@ -314,6 +313,7 @@ const handleUpdateOrder = async () => {
       pdf_path: agenda.pdf_path,
       agenda_type: agenda.agenda_type,
       session_id: agenda.session_id,
+      position:agenda.position
     });
     setActive("update_agenda");
     setSelectedItem(agenda._id);
@@ -363,7 +363,7 @@ const handleUpdateOrder = async () => {
               className={`${active == "add_agenda" ? "active-nav" : ""}`}
 color="blue"
 variant="filled"
-              onClick={() => setActive("add_agenda")}
+              onClick={() => {setActive("add_agenda")}}
             >
               DODAJ NOVU AGENDU
             </Button>}
@@ -419,6 +419,7 @@ variant="filled"
                 setAgendas={setAgendas}
                 openUpdateSession={openUpdateSession}
                 deleteSession={deleteSession}
+                setFromSession={setFromSession}
               />
             </div>
           )}

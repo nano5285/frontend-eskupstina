@@ -18,7 +18,8 @@ export default function SessionsList({
   setAgendas,
   openUpdateSession,
   deleteSession,
-setSessionId
+setSessionId,
+setFromSession
 }) {
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -41,10 +42,11 @@ setSessionId
 
   const currentItems = sessions.slice(indexOfFirstItem, indexOfLastItem);
   const TABLE_HEAD = ["Sr. No.", "Name", "View", "Action"];
-  const handleAgendaList = (type, agendas,id) => {
+  const handleAgendaList = (type, agendas,id,item) => {
     setAgendas(agendas);
     setActive(type);
     setSessionId(id)
+    setFromSession(item?.id)
   };
   return (
     <Card>
@@ -112,7 +114,7 @@ setSessionId
                       variant="small"
                       color="blue-gray"
                       className="font-normal"
-                        onClick={() => handleAgendaList("Agenda", item?.agendas,item?.id)}
+                        onClick={() => handleAgendaList("Agenda", item?.agendas,item?.id,item)}
                     >
                       <EyeIcon className="h-4 w-4" />
                     </IconButton>
