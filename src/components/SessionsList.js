@@ -46,7 +46,7 @@ setFromSession
     setAgendas(agendas);
     setActive(type);
     setSessionId(id)
-    setFromSession(item?.name)
+    setFromSession(item?.id)
   };
   return (
     <Card>
