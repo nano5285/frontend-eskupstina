@@ -634,6 +634,30 @@ export default function MainScene(props) {
                       <button className="btn ml-2">Super Admin</button>
                     </div>
                   )}
+                  {(admin || superAdmin) && (
+                    <div
+                      id="logout"
+                      className="mt-3 mr-3 "
+                      style={{
+                        backgroundColor: "white",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        marginBottom: "2px",
+                        cursor: "pointer",
+                        top: "30px",
+                        height: "40px",
+                        width: "100px",
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "center",
+                      }}
+                      onClick={() => navigate("/statistics")}
+                    >
+                      <button className="btn ml-2">Statistics</button>
+                    </div>
+                  )}
                 </div>
               </div>
               {showLogout && (
@@ -673,7 +697,7 @@ export default function MainScene(props) {
                 </div>
               )}
               <div>
-                <h1 className="text-xl text-center my-4 font-bold text-center px-5">
+                <h1 className="text-xl my-4 font-bold text-center px-5">
                   {currentSession.name}
                 </h1>
               </div>
