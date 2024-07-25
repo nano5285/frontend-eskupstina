@@ -29,3 +29,76 @@ code {
   margin-left: 50px;
   margin-right: 50px;
 }
+
+.bg-clip-border {
+  background-clip: border-box;
+  background-color: revert;
+}
+tr {
+  background-color: mintcream;
+}
+svg.svg-inline--fa.fa-bars {
+  margin-block: 10px;
+}
+.home-btn a {
+  font-size: 16px;
+  font-weight: 400;
+  text-decoration: none;
+  color: black;
+  margin-inline-end: 100px;  
+  border-bottom: 1px solid;
+}
+/* .panel-btn {
+  margin: 10px 30px 20px 0px;
+} */
+.side-bars {
+  margin-inline-start: 10px;
+}
+.panel-btn {  
+  margin: 20px;
+}
+.heading-inner {
+  margin-block-start: 20px;
+}
+.home-btn {
+  padding-block-start: 30px;
+}
+.header-menu {
+  display: flex;
+  justify-content: space-around;
+  padding-block: 20px;
+  background-color: mintcream;
+  border: 2px solid lightblue;
+}
+.mid-btns ul{
+  display: flex;
+}
+.mid-btns ul li{
+  margin-inline: 20px;
+}
+.mid-btns {
+  margin-inline-start: 80px;
+}
+.user-namee {
+  border-bottom: 2px solid lightblue;
+}
+
+.menu-content a::after{
+    content: '';
+    display: block;
+    width: 0%;
+    height: 2px;
+    background-color: lightblue;
+    transition: width .3s;
+}
+.menu-content a:hover::after{
+    width: 100%;
+    transition: width .3s;
+}
+
+
+/* .home-btn {
+  display: flex;
+  align-items: baseline;
+} */
+

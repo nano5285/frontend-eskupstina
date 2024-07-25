@@ -31,6 +31,7 @@ import { useAuth } from "../../authContext";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import AgendaDialog from "../../components/AgendaDialog";
 import isEqual from "lodash/isEqual";
+import Navbar from "../../components/Navbar";
 
 export default function MainScene(props) {
   const { state } = useLocation();
@@ -539,207 +540,185 @@ export default function MainScene(props) {
     return false;
   }
   return (
-    <div className="">
-      <div
-        className={`${
-          isFullScreen ? "p-[20px]" : "p-[0px]"
-        }  h-screen  w-full  bg-[#ddd]`}
-      >
-        <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
-          {isFullScreen && (
-            <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
-              <div
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "baseline",
-                  justifyContent: "space-between",
-                  marginBottom: "5px",
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faBars}
-                  onClick={toggleLogout}
-                  className="cursor-pointer"
-                />
-
+    <>
+      <Navbar/>
+      <div className="">
+        <div
+          className={`${isFullScreen ? "p-[20px]" : "p-[0px]"
+            }  h-screen  w-full  bg-[#ddd]`}
+        >
+          <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
+            {isFullScreen && (
+              <div className="flex flex-col basis-1/4 bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px] px-[20px] pt-[40px] overflow-y-auto">
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
                     position: "relative",
+                    display: "block",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    marginBottom: "5px",
+
+
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      flexGrow: 1,
-                    }}
-                  >
-                    <FontAwesomeIcon
-                      icon={faUser}
-                      style={{ marginRight: "5px" }}
-                    />
-                    <span style={{ marginLeft: "8px" }}>{userName}</span>
-                  </div>
-                </div>
+                  <FontAwesomeIcon
+                    icon={faBars}
+                    onClick={toggleLogout}
+                    className="cursor-pointer side-bars"
+                  />
 
-                <div>
-                  {(admin || superAdmin) && (
-                    <div
-                      id="logout"
-                      className="mt-3 mr-3 "
-                      style={{
-                        backgroundColor: "white",
-                        padding: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "5px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                        marginBottom: "2px",
-                        cursor: "pointer",
-                        top: "30px",
-                        height: "40px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        textAlign: "center",
-                      }}
-                      onClick={() => navigate("/admin")}
-                    >
-                      <button className="btn ml-2">Admin</button>
-                    </div>
-                  )}
-                  {superAdmin && (
-                    <div
-                      id="logout"
-                      className="mt-3 mr-3 "
-                      style={{
-                        backgroundColor: "white",
-                        padding: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "5px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                        marginBottom: "2px",
-                        cursor: "pointer",
-                        top: "30px",
-                        height: "40px",
-                        minWidth: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        textAlign: "center",
-                      }}
-                      onClick={() => navigate("/super-admin")}
-                    >
-                      <button className="btn ml-2">Super Admin</button>
-                    </div>
-                  )}
-                  {(admin || superAdmin) && (
-                    <div
-                      id="logout"
-                      className="mt-3 mr-3 "
-                      style={{
-                        backgroundColor: "white",
-                        padding: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "5px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                        marginBottom: "2px",
-                        cursor: "pointer",
-                        top: "30px",
-                        height: "40px",
-                        width: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        textAlign: "center",
-                      }}
-                      onClick={() => navigate("/statistics")}
-                    >
-                      <button className="btn ml-2">Statistics</button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {showLogout && (
-                <div className="mt-2">
-                  {sessions.map((item) => (
-                    <p
-                      key={item.id}
-                      className="mt-3 text-lg pointer-cursor"
-                      id={item.id}
-                      onClick={() => sessionChange(item)}
-                    >
-                      {item.name}
-                    </p>
-                  ))}
                   <div
-                    id="logout"
-                    className="mt-3"
                     style={{
-                      backgroundColor:
-                        "rgb(213 213 213 / var(--tw-bg-opacity))",
-                      padding: "10px",
-                      border: "1px solid #ccc",
-                      borderRadius: "5px",
-                      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                      marginBottom: "2px",
-                      cursor: "pointer",
-                      top: "30px",
-                      height: "40px",
                       display: "flex",
                       alignItems: "center",
+                      position: "relative",
+                      background: "white",
+                      borderBottom: "1px solid lightgrey",
+                      padding: "5px 10px",
+                      width: "fit content",
+
                     }}
-                    onClick={handleLogout}
                   >
-                    <FontAwesomeIcon className="ml-1" icon={faSignOutAlt} />
-                    <button className="btn ml-2">Logout</button>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexGrow: 1,
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faUser}
+                        style={{ marginRight: "5px" }}
+                      />
+                      <span className="user-id" style={{ marginLeft: "8px" }}>{userName}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    {(admin || superAdmin) && (
+                      <div
+                        id="logout"
+                        className="panel-btn mt-3 mr-3 "
+                        style={{
+                          backgroundColor: "mintcream",
+                          margin: "30px 30px 2px 0px",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                          marginBottom: "2px",
+                          cursor: "pointer",
+                          top: "30px",
+                          height: "40px",
+                          width: "150px",
+                          display: "flex",
+                          alignItems: "center",
+                          textAlign: "center",
+                        }}
+                        onClick={() => navigate("/admin")}
+                      >
+                        <button className=" btn ml-2">Admin</button>
+                      </div>
+                    )}
+                    {superAdmin && (
+                      <div
+                        id="logout"
+                        className="panel-btn mt-3 mr-3 "
+                        style={{
+                          backgroundColor: "mintcream",
+                          margin: "10px 30px 20px 0px",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                          marginBottom: "2px",
+                          cursor: "pointer",
+                          top: "30px",
+                          height: "40px",
+                          width: "150px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          textAlign: "center",
+                        }}
+                        onClick={() => navigate("/super-admin")}
+                      >
+                        <button className=" btn ml-2">Super Admin</button>
+                      </div>
+                    )}
+                    {(admin || superAdmin) && (
+                      <div
+                        id="logout"
+                        className="panel-btn mt-3 mr-3 "
+                        style={{
+                          backgroundColor: "mintcream",
+                          margin: "10px 30px 20px 0px",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                          marginBottom: "2px",
+                          cursor: "pointer",
+                          top: "30px",
+                          height: "40px",
+                          width: "150px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          textAlign: "center",
+                        }}
+                        onClick={() => navigate("/statistics")}
+                      >
+                        <button className=" btn ml-2">Statistics</button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-              <div>
-                <h1 className="text-xl my-4 font-bold text-center px-5">
-                  {currentSession.name}
-                </h1>
-              </div>
-              <div
-                style={
-                  showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                }
-              >
-                <div>
-                  <div
-                    style={{
-                      borderTop:
-                        "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
-                      marginBottom: "5px",
-                    }}
-                  ></div>
-                </div>
-                {preAgenda.map((item, index) => {
-                  return (
-                    <CustomButton
-                      key={index}
-                      selected={item._id == selectedIndexAgenda._id}
-                      index={index + 1}
-                      locked={item.vote_state == 2}
-                      name={item.name}
-                      onClick={() => {
-                        setGetUpdate(!getUpdate);
-                        setSelectedIndexAgenda(preAgenda[index]);
-                        setSelectedAgendaPdf(preAgenda[index]?._id);
+                {showLogout && (
+                  <div className="mt-2">
+                    {sessions.map((item) => (
+                      <p
+                        key={item.id}
+                        className="mt-3 text-lg pointer-cursor"
+                        id={item.id}
+                        onClick={() => sessionChange(item)}
+                      >
+                        {item.name}
+                      </p>
+                    ))}
+                    <div
+                      id="logout"
+                      className="mt-3"
+                      style={{
+                        backgroundColor:
+                          "rgb(213 213 213 / var(--tw-bg-opacity))",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "5px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        marginBottom: "2px",
+                        cursor: "pointer",
+                        top: "30px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
                       }}
-                    ></CustomButton>
-                  );
-                })}
-              </div>
-              <div
-                style={
-                  showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                }
-              >
-                {dailyAgenda.length && (
+                      onClick={handleLogout}
+                    >
+                      <FontAwesomeIcon className="ml-1" icon={faSignOutAlt} />
+                      <button className="btn ml-2">Logout</button>
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-xl my-4 font-bold text-center px-5">
+                    {currentSession.name}
+                  </h1>
+                </div>
+                <div
+                  style={
+                    showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                  }
+                >
                   <div>
-                    <div> Dnevna Agenda</div>
                     <div
                       style={{
                         borderTop:
@@ -748,163 +727,195 @@ export default function MainScene(props) {
                       }}
                     ></div>
                   </div>
-                )}
-                {dailyAgenda.map((item, index) => {
-                  return (
-                    <CustomButton
-                      key={index}
-                      selected={item._id == selectedIndexAgenda._id}
-                      index={index + 1}
-                      locked={dailyAgenda[index].vote_state == 2}
-                      name={item.name}
-                      onClick={() => {
-                        setSelectedIndexAgenda(dailyAgenda[index]);
-                        setSelectedAgendaPdf(dailyAgenda[index]?._id);
-                      }}
-                    ></CustomButton>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          <div
-            className={`${
-              isFullScreen ? "md:basis-2/4" : "basis-full"
-            } relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`}
-          >
-            {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
-            {selectedAgendaPdf && (
-              <PdfViewer
-                url={
-                  "https://backend-eskupstina.azurewebsites.net/api/pdf-blob?agenda=" +
-                  selectedAgendaPdf
-                }
-                onError={(error) => {
-                  console.error("Error fetching PDF:", error);
-                  // Handle error (e.g., display an error message to the user)
-                }}
-              />
-            )}
-            <div className="absolute bottom-5 right-10">
-              <button
-                onClick={() => {
-                  setIsFullScreen(!isFullScreen);
-                }}
-              >
-                <img
-                  src={ZoomSvg}
-                  width={60}
-                  height={60}
-                  alt="eskupstina zoom"
-                />
-              </button>
-            </div>
-          </div>
-          {isFullScreen && (
-            <div className="relative flex flex-col items-center basis-1/4  border-[2px] border-[#ccc] rounded-[8px] bg-[#fff]  p-[20px]">
-              <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B]">
-                    {notVotedNum}
-                  </div>
-                  <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
-                    Ukupno
-                  </div>
+                  {preAgenda.map((item, index) => {
+                    return (
+                      <CustomButton
+                        key={index}
+                        selected={item._id == selectedIndexAgenda._id}
+                        index={index + 1}
+                        locked={item.vote_state == 2}
+                        name={item.name}
+                        onClick={() => {
+                          setGetUpdate(!getUpdate);
+                          setSelectedIndexAgenda(preAgenda[index]);
+                          setSelectedAgendaPdf(preAgenda[index]?._id);
+                        }}
+                      ></CustomButton>
+                    );
+                  })}
                 </div>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] ">
-                    {yesNum}
-                  </div>
-                  <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
-                    Za
-                  </div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] ">
-                    {abstrainedNum}
-                  </div>
-                  <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
-                    Suzdržano
-                  </div>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] ">
-                    {noNum}
-                  </div>
-                  <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
-                    Protiv
-                  </div>
-                </div>
-              </div>
-
-              <div className="w-full overflow-y-auto">
-                {party?.map((item, index) => {
-                  return (
-                    <div className="w-full" key={index}>
-                      <div className="text-[20px] text-[700] text-[#2E2E2E] text-center mt-[20px]">
-                        {item}
-                      </div>
-                      <div className="w-full h-[4px] bg-[#D9D9D9] mt-[10px]"></div>
-                      <div className="w-full h-full flex flex-col">
-                        {users[index]
-                          .filter((item) => item.role != "super-admin")
-                          .map((userItem) => {
-                            return (
-                              <UserComponent
-                                key={userItem._id}
-                                decision={getDecisionFromAgenda(
-                                  userItem._id,
-                                  selectedAgenda
-                                )}
-                                name={userItem.name}
-                              />
-                            );
-                          })}
-                      </div>
+                <div
+                  style={
+                    showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                  }
+                >
+                  {dailyAgenda.length && (
+                    <div>
+                      <div> Dnevna Agenda</div>
+                      <div
+                        style={{
+                          borderTop:
+                            "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                          marginBottom: "5px",
+                        }}
+                      ></div>
                     </div>
-                  );
-                })}
-              </div>
-              {state?.role == "admin" && (
-                <div className="w-full h-[120px]"></div>
-              )}
-              {state?.role == "admin" && (
-                <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
-                  <Button
-                    className=" w-[120px] bg-[green] text-[12px]"
-                    onClick={sendVoteStart}
-                  >
-                    Otvori glasanje
-                  </Button>
-                  <Button
-                    className=" w-[120px] bg-[#f00] text-[12px]"
-                    onClick={sendVoteReset}
-                  >
-                    Resetiraj glasanje
-                  </Button>
+                  )}
+                  {dailyAgenda.map((item, index) => {
+                    return (
+                      <CustomButton
+                        key={index}
+                        selected={item._id == selectedIndexAgenda._id}
+                        index={index + 1}
+                        locked={dailyAgenda[index].vote_state == 2}
+                        name={item.name}
+                        onClick={() => {
+                          setSelectedIndexAgenda(dailyAgenda[index]);
+                          setSelectedAgendaPdf(dailyAgenda[index]?._id);
+                        }}
+                      ></CustomButton>
+                    );
+                  })}
                 </div>
+              </div>
+            )}
+            <div
+              className={`${isFullScreen ? "md:basis-2/4" : "basis-full"
+                } relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`}
+            >
+              {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
+              {selectedAgendaPdf && (
+                <PdfViewer
+                  url={
+                    "https://backend-eskupstina.azurewebsites.net/api/pdf-blob?agenda=" +
+                    selectedAgendaPdf
+                  }
+                  onError={(error) => {
+                    console.error("Error fetching PDF:", error);
+                    // Handle error (e.g., display an error message to the user)
+                  }}
+                />
               )}
-              <CloseAlert
-                open={adminOpen}
-                handleOpen={sendVoteStart}
-                handleClose={sendVoteClose}
-                data={{
-                  yesNum: yesNum,
-                  noNum: noNum,
-                  notVotedNum: notVotedNum,
-                  abstrainedNum: abstrainedNum,
-                }}
-              />
+              <div className="absolute bottom-5 right-10">
+                <button
+                  onClick={() => {
+                    setIsFullScreen(!isFullScreen);
+                  }}
+                >
+                  <img
+                    src={ZoomSvg}
+                    width={60}
+                    height={60}
+                    alt="eskupstina zoom"
+                  />
+                </button>
+              </div>
             </div>
-          )}
+            {isFullScreen && (
+              <div className="relative flex flex-col items-center basis-1/4  border-[2px] border-[#ccc] rounded-[8px] bg-[#fff]  p-[20px]">
+                <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B]">
+                      {notVotedNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Ukupno
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] ">
+                      {yesNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Za
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] ">
+                      {abstrainedNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Suzdržano
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] ">
+                      {noNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Protiv
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full overflow-y-auto">
+                  {party?.map((item, index) => {
+                    return (
+                      <div className="w-full" key={index}>
+                        <div className="text-[20px] text-[700] text-[#2E2E2E] text-center mt-[20px]">
+                          {item}
+                        </div>
+                        <div className="w-full h-[4px] bg-[#D9D9D9] mt-[10px]"></div>
+                        <div className="w-full h-full flex flex-col">
+                          {users[index]
+                            .filter((item) => item.role != "super-admin")
+                            .map((userItem) => {
+                              return (
+                                <UserComponent
+                                  key={userItem._id}
+                                  decision={getDecisionFromAgenda(
+                                    userItem._id,
+                                    selectedAgenda
+                                  )}
+                                  name={userItem.name}
+                                />
+                              );
+                            })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {state?.role == "admin" && (
+                  <div className="w-full h-[120px]"></div>
+                )}
+                {state?.role == "admin" && (
+                  <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
+                    <Button
+                      className=" w-[120px] bg-[green] text-[12px]"
+                      onClick={sendVoteStart}
+                    >
+                      Otvori glasanje
+                    </Button>
+                    <Button
+                      className=" w-[120px] bg-[#f00] text-[12px]"
+                      onClick={sendVoteReset}
+                    >
+                      Resetiraj glasanje
+                    </Button>
+                  </div>
+                )}
+                <CloseAlert
+                  open={adminOpen}
+                  handleOpen={sendVoteStart}
+                  handleClose={sendVoteClose}
+                  data={{
+                    yesNum: yesNum,
+                    noNum: noNum,
+                    notVotedNum: notVotedNum,
+                    abstrainedNum: abstrainedNum,
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      <VoteAlert
-        open={open}
-        agenda={votingAgenda}
-        handleOpen={changeVoteView}
-      />
-      {/* <ResultAlert open={resultOpen} resultData={resultData} handleClose={handleResultClose} /> */}
-    </div>
+        <VoteAlert
+          open={open}
+          agenda={votingAgenda}
+          handleOpen={changeVoteView}
+        />
+        {/* <ResultAlert open={resultOpen} resultData={resultData} handleClose={handleResultClose} /> */}
+      </div></>
   );
 }

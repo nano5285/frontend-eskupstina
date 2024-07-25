@@ -7,6 +7,7 @@ import { Admin } from "../pages/admin/Admin";
 import { SuperAdmin } from "../pages/superAdmin/SuperAdmin";
 import Statistics from "../pages/Statistics";
 
+
 export default function Router() {
   const { isLoggedIn } = useAuth();
   const role = localStorage.getItem("role");
@@ -46,11 +47,11 @@ export default function Router() {
         <Route
           path="/statistics"
           element={
-            isLoggedIn ? (
-              <Statistics />
-            ) : (
-              <Navigate to="/" />
-            )
+            // isLoggedIn ? (
+              <Statistics  />
+            // ) : (
+              // <Navigate to="/" />
+            // )
           }
         />
       </Routes>

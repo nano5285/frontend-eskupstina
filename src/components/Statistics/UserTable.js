@@ -63,14 +63,17 @@ export default function UsersTable() {
   return (
     <Card className="table_background">
       <CardHeader floated={false} shadow={false} className="rounded-none">
-        <div className="mb-8 flex items-center justify-between gap-8">
-          <div>
-            <Typography variant="h5" color="blue-gray">
-              Users list
-            </Typography>
-            <Typography color="gray" className="mt-1 font-normal">
-              See information about users
-            </Typography>
+        <div className="table-head mb-8 flex items-center justify-between gap-8">
+          <div className="home-btn">
+          <a href="#">Home</a>
+            <div className="heading-inner">            
+              <Typography variant="h5" color="blue-gray">
+                Users list
+              </Typography>
+              <Typography color="gray" className="mt-1 font-normal">
+                See information about users
+              </Typography>
+            </div>            
           </div>
         </div>
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
@@ -105,7 +108,7 @@ export default function UsersTable() {
         <table className="w-full min-w-max table-auto text-left">
           <thead>
             <tr>
-              {TABLE_HEAD.map((head) => (
+              {TABLE_HEAD?.map((head) => (
                 <th
                   key={head}
                   className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
@@ -240,7 +243,7 @@ export default function UsersTable() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  {TABLE_HEAD.map((head) => (
+                  {TABLE_HEAD?.map((head) => (
                     <th
                       key={head}
                       className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
