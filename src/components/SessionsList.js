@@ -29,7 +29,7 @@ export default function SessionsList({
   useEffect(() => {
     const pageNumber = Math.ceil(sessions.length / 10);
     setTotalPage(pageNumber);
-  }, []);
+  }, [sessions]);
 
   const handlePage = (btn) => {
     if (btn === "Next") {
@@ -84,7 +84,7 @@ export default function SessionsList({
                 : "p-4 border-b border-blue-gray-50";
               // { console.log(item, 'item') }
               return (
-                <tr key={item?.name}>
+                <tr key={item?._id}>
                   <td className={classes}>
                     <div className="flex items-center gap-3">
                       {/* <Avatar

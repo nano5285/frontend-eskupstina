@@ -83,8 +83,8 @@ const Navbar = ({ admin, superAdmin, sessions, sessionChange }) => {
               <MenuList>
                 <MenuItem
                     onClick={() => {handleLogout()}}
-                >Admin panel
-                  Logout
+                >
+                 Logout
                 </MenuItem>
               </MenuList>
             </Menu>

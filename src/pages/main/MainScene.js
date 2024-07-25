@@ -879,10 +879,10 @@ export default function MainScene(props) {
                     );
                   })}
                 </div>
-                {state?.role == "admin" && (
+                {admin && (
                   <div className="w-full h-[120px]"></div>
                 )}
-                {state?.role == "admin" && (
+                {admin && (
                   <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
                     <Button
                       className=" w-[120px] bg-[green] text-[12px]"
