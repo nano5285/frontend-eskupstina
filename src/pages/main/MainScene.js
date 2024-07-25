@@ -725,6 +725,7 @@ export default function MainScene(props) {
                           "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
                         marginBottom: "5px",
                       }}
+                      
                     ></div>
                   </div>
                   {preAgenda.map((item, index) => {

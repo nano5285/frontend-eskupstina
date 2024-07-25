@@ -10,8 +10,10 @@ export default function AgendaDialog(props) {
     handleInputChange,
     handleSave,
     sessions,
+    isFrom,
+    fromSession,
   } = props;
-  console.log("cheeck")
+  console.log(fromSession, "cheeck");
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={cancelAgenda}>
@@ -167,7 +169,7 @@ export default function AgendaDialog(props) {
                                 </fieldset>
                               </div>
 
-                              <div className=" space-y-10 sm:pb-0">
+                              {/* <div className=" space-y-10 sm:pb-0">
                                 <fieldset>
                                   <div className="sm:grid sm:grid-cols-3 sm:items-baseline sm:gap-4 sm:py-6">
                                     <div
@@ -179,33 +181,32 @@ export default function AgendaDialog(props) {
                                     <div className="mt-1 sm:col-span-2 sm:mt-0">
                                       <div className="max-w-lg">
                                         <div className="mt-6 space-y-6">
-                                          {sessions.map((item) => (
-                                            <div
-                                              key={item.id}
-                                              className="flex items-center gap-x-3"
+                                          <div
+                                            key={fromSession}
+                                            className="flex items-center gap-x-3"
+                                          >
+                                            <input
+                                              id="push-email"
+                                              name="session"
+                                              type="radio"
+                                              className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                              // onChange={handleInputChange}
+                                              checked={fromSession}
+                                              value={fromSession}
+                                            />
+                                            <label
+                                              htmlFor="push-email"
+                                              className="block text-sm font-medium leading-6 text-gray-900"
                                             >
-                                              <input
-                                                id="push-email"
-                                                name="session"
-                                                type="radio"
-                                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                                onChange={handleInputChange}
-                                                value={item.id}
-                                              />
-                                              <label
-                                                htmlFor="push-email"
-                                                className="block text-sm font-medium leading-6 text-gray-900"
-                                              >
-                                                {item.name}
-                                              </label>
-                                            </div>
-                                          ))}
+                                              {fromSession}
+                                            </label>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 </fieldset>
-                              </div>
+                              </div> */}
                             </div>
                             <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                               <label
@@ -222,6 +223,26 @@ export default function AgendaDialog(props) {
                                   rows={3}
                                   className="block w-full p-2 max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                   defaultValue={""}
+                                  onChange={handleInputChange}
+                                  //   value={formData.pdf_path}
+                                />
+                              </div>
+                            </div>
+                            <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                              <label
+                                htmlFor="about"
+                                className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5"
+                              >
+                                Order Number
+                              </label>
+                              <div className="mt-2 sm:col-span-2 sm:mt-0">
+                                <input
+                                  type="Number"
+                                  id="about"
+                                  name="position"
+                                  rows={1}
+                                  className="block w-full p-2 max-w-2xl rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  value={formData?.position}
                                   onChange={handleInputChange}
                                   //   value={formData.pdf_path}
                                 />
@@ -253,6 +274,13 @@ export default function AgendaDialog(props) {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                     onClick={handleSave}
+                    disabled={
+                      !formData?.title ||
+                      !formData?.description ||
+                      !formData?.pdf_path ||
+                      !formData?.agenda_type ||
+                      !formData?.position
+                    }
                   >
                     Save
                   </button>

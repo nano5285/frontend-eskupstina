@@ -7,8 +7,7 @@ import axios from "axios";
 
 axios.defaults.baseURL =
   process.env.REACT_APP_API_URL ||
-  // "https://backend-eskupstina.azurewebsites.net/";
-  "http://localhost:5005/"
+  "https://backend-eskupstina.azurewebsites.net/";
 
 /*  axios.defaults.baseURL = "http://localhost:5005/";
  */ const signInUser = async (props) => {
@@ -200,15 +199,15 @@ const closeVote = async (props) => {
   }
 };
 
-const createAgenda = async (props) => {
+const createAgenda = async (props,session) => {
   try {
     const formData = new FormData();
     formData.append("title", props.title);
     formData.append("description", props.description);
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
-    formData.append("session", props.session);
-
+    formData.append("session",session);
+    formData.append("position",props.position)
     const result = await axios.post("/api/agenda", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -220,15 +219,15 @@ const createAgenda = async (props) => {
   }
 };
 
-const updateAgenda = async (props, id) => {
+const updateAgenda = async (props, id,session) => {
   try {
     const formData = new FormData();
     formData.append("title", props.title);
     formData.append("description", props.description);
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
-    formData.append("session", props.session);
-
+    formData.append("session", session);
+    formData.append("position",props.position)
     const result = await axios.put(`/api/update-agenda?id=${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -239,6 +238,7 @@ const updateAgenda = async (props, id) => {
     return error.response;
   }
 };
+
 const resetVote = async (props) => {
   try {
     var result = await axios.post("/api/reset_vote/", props, {
@@ -264,7 +264,24 @@ const getSessions = async (props) => {
     return error.response;
   }
 };
-
+const getAgendas = async (id,type,text) => {
+const params = new URLSearchParams();
+ 
+    
+    if (type) params.append('agenda_type', type);
+if (id) params.append('session_id', id);
+if (text) params.append('search', text);
+  try {
+    var result = await axios.get(`/api/get_all_agendas?${params}`, params, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
 const deleteAgendaAPI = async (props) => {
   try {
     var result = await axios.delete(`/api/agenda/${props}`, props, {
@@ -376,5 +393,6 @@ export {
   updateUser,
   usersList,
   sessionsList,
-  agendasList
+  agendasList,
+getAgendas,
 };

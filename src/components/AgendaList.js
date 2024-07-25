@@ -1,5 +1,15 @@
 import { Tab } from "@headlessui/react";
-import { CpuChipIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowRightEndOnRectangleIcon,
+  CpuChipIcon,
+  CursorArrowRippleIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
+  PhoneArrowDownLeftIcon,
+  ShareIcon,
+  SwatchIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import {
   Avatar,
   Button,
@@ -15,26 +25,37 @@ import {
   Tooltip,
   Typography,
 } from "@material-tailwind/react";
+import { setActive } from "@material-tailwind/react/components/Tabs/TabsContext";
 import React, { useEffect, useState } from "react";
 
-export default function AgendaList({ agendas,openUpdateAgenda,deleteAgenda }) {
+export default function AgendaList({
+  agendas,
+  openUpdateAgenda,
+  deleteAgenda,
+  onFilter,
+  setActive,
+  setCurrentOrderNum,
+setSelectedItem,
+openUpdateOrder
+}) {
   const TABLE_HEAD = [
     "Sr.No.",
     "Name of agenda",
     "Description (optional)",
     "Type",
     "Document upload",
+    "Change Position",
     "Action",
   ];
   console.log(agendas, "agenda");
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
-const [itemsPerPage,setItemsPerPage] = useState(10);
-  useEffect(()=>{
-  const pageNumber=Math.ceil(agendas.length/10);
-  setTotalPage(pageNumber);
-
-  },[]);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  useEffect(() => {
+    const pageNumber = Math.ceil(agendas.length / 10);
+    setTotalPage(pageNumber);
+    
+  }, []);
   const handlePage = (btn) => {
     if (btn === "Next") {
       setPage(page + 1);
@@ -44,25 +65,25 @@ const [itemsPerPage,setItemsPerPage] = useState(10);
       }
     }
   };
- const indexOfLastItem = page * itemsPerPage;
+  const indexOfLastItem = page * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const currentItems = agendas.slice(indexOfFirstItem, indexOfLastItem);
   console.log(page, "page");
-const TABS = [
-  {
-    label: "All",
-    value: "all",
-  },
-  {
-    label: "Pre Agenda",
-    value: "pre_agenda",
-  },
-  {
-    label: "Daily Agenda",
-    value: "daily_agenda",
-  },
-];
+  const TABS = [
+    {
+      label: "All",
+      value: "",
+    },
+    {
+      label: "Pre Agenda",
+      value: "pre_agenda",
+    },
+    {
+      label: "Daily Agenda",
+      value: "daily_agenda",
+    },
+  ];
   const TABLE_ROWS = [
     {
       img: "https://docs.material-tailwind.com/img/logos/logo-spotify.svg",
@@ -117,7 +138,7 @@ const TABS = [
   ];
   return (
     <Card>
-       <CardHeader floated={false} shadow={false} className="rounded-none">
+      <CardHeader floated={false} shadow={false} className="rounded-none">
         <div className="mb-8 flex items-center justify-between gap-8">
           <div>
             <Typography variant="h5" color="blue-gray">
@@ -132,7 +153,13 @@ const TABS = [
           <Tab.Group value="all" className="w-full md:w-max">
             <Tab.List>
               {TABS.map(({ label, value }) => (
-                <Tab key={value} value={value}>
+                <Tab
+                  key={value}
+                  value={value}
+                  onClick={() => {
+                    onFilter(value);
+                  }}
+                >
                   &nbsp;&nbsp;{label}&nbsp;&nbsp;
                 </Tab>
               ))}
@@ -142,6 +169,7 @@ const TABS = [
             <Input
               label="Search"
               icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+            onChange={e=>onFilter("",e.target.value)}
             />
           </div>
         </div>
@@ -186,7 +214,7 @@ const TABS = [
                       </Typography>
                     </div>
                   </td>
-                  <td className={classes} >
+                  <td className={classes}>
                     <Typography
                       variant="small"
                       color="blue-gray"
@@ -234,13 +262,37 @@ const TABS = [
                     </div>
                   </td>
                   <td className={classes}>
+                    <Button
+                      size="sm"
+                      variant="filled"
+                      onClick={() => {
+                        openUpdateOrder(item)
+                      }}
+                      className="text-center"
+                      color={"green"}
+                    >
+                      Change
+                    </Button>
+                  </td>
+                  <td className={classes}>
                     <Tooltip content="Edit User">
-                      <IconButton variant="small"color="amber" onClick={() => {openUpdateAgenda(item)}}>
+                      <IconButton
+                        variant="small"
+                        color="amber"
+                        onClick={() => {
+                          openUpdateAgenda(item);
+                        }}
+                      >
                         <PencilIcon className="h-4 w-4" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip content="Delete User">
-                      <IconButton variant="small" color="red"className="ml-2" onClick={() => deleteAgenda(item?._id)} >
+                      <IconButton
+                        variant="small"
+                        color="red"
+                        className="ml-2"
+                        onClick={() => deleteAgenda(item?._id)}
+                      >
                         <TrashIcon className="h-4 w-4" />
                       </IconButton>
                     </Tooltip>
@@ -252,15 +304,28 @@ const TABS = [
         </table>
       </CardBody>
       <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
-        <Button variant="outlined" size="sm" onClick={() => handlePage("Prev")} disabled={page===1}>
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => handlePage("Prev")}
+          disabled={page === 1}
+        >
           Previous
         </Button>
         <div className="flex items-center gap-2">
-          <IconButton variant="outlined" size="sm">
+{Array.from({length:totalPage},(_,index)=>index+1).map(page =>(
+ <IconButton variant="outlined" size="sm">
             {page}
           </IconButton>
+))}
+         
         </div>
-        <Button variant="outlined" size="sm" onClick={() => handlePage("Next")} disabled={page === totalPage}>
+        <Button
+          variant="outlined"
+          size="sm"
+          onClick={() => handlePage("Next")}
+          disabled={page === totalPage}
+        >
           Next
         </Button>
       </CardFooter>
