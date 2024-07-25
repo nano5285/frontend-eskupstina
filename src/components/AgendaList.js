@@ -35,8 +35,8 @@ export default function AgendaList({
   onFilter,
   setActive,
   setCurrentOrderNum,
-setSelectedItem,
-openUpdateOrder
+  setSelectedItem,
+  openUpdateOrder,
 }) {
   const TABLE_HEAD = [
     "Sr.No.",
@@ -47,15 +47,16 @@ openUpdateOrder
     "Change Position",
     "Action",
   ];
-  console.log(agendas, "agenda");
+  // console.log(agendas, "agenda");
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  
   useEffect(() => {
     const pageNumber = Math.ceil(agendas.length / 10);
     setTotalPage(pageNumber);
-    
   }, []);
+
   const handlePage = (btn) => {
     if (btn === "Next") {
       setPage(page + 1);
@@ -65,11 +66,12 @@ openUpdateOrder
       }
     }
   };
+
   const indexOfLastItem = page * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const currentItems = agendas.slice(indexOfFirstItem, indexOfLastItem);
-  console.log(page, "page");
+  // console.log(page, "page");
   const TABS = [
     {
       label: "All",
@@ -84,58 +86,58 @@ openUpdateOrder
       value: "daily_agenda",
     },
   ];
-  const TABLE_ROWS = [
-    {
-      img: "https://docs.material-tailwind.com/img/logos/logo-spotify.svg",
-      name: "Spotify",
-      amount: "$2,500",
-      date: "Wed 3:00pm",
-      status: "paid",
-      account: "visa",
-      accountNumber: "1234",
-      expiry: "06/2026",
-    },
-    {
-      img: "https://docs.material-tailwind.com/img/logos/logo-amazon.svg",
-      name: "Amazon",
-      amount: "$5,000",
-      date: "Wed 1:00pm",
-      status: "paid",
-      account: "master-card",
-      accountNumber: "1234",
-      expiry: "06/2026",
-    },
-    {
-      img: "https://docs.material-tailwind.com/img/logos/logo-pinterest.svg",
-      name: "Pinterest",
-      amount: "$3,400",
-      date: "Mon 7:40pm",
-      status: "pending",
-      account: "master-card",
-      accountNumber: "1234",
-      expiry: "06/2026",
-    },
-    {
-      img: "https://docs.material-tailwind.com/img/logos/logo-google.svg",
-      name: "Google",
-      amount: "$1,000",
-      date: "Wed 5:00pm",
-      status: "paid",
-      account: "visa",
-      accountNumber: "1234",
-      expiry: "06/2026",
-    },
-    {
-      img: "https://docs.material-tailwind.com/img/logos/logo-netflix.svg",
-      name: "netflix",
-      amount: "$14,000",
-      date: "Wed 3:30am",
-      status: "cancelled",
-      account: "visa",
-      accountNumber: "1234",
-      expiry: "06/2026",
-    },
-  ];
+  // const TABLE_ROWS = [
+  //   {
+  //     img: "https://docs.material-tailwind.com/img/logos/logo-spotify.svg",
+  //     name: "Spotify",
+  //     amount: "$2,500",
+  //     date: "Wed 3:00pm",
+  //     status: "paid",
+  //     account: "visa",
+  //     accountNumber: "1234",
+  //     expiry: "06/2026",
+  //   },
+  //   {
+  //     img: "https://docs.material-tailwind.com/img/logos/logo-amazon.svg",
+  //     name: "Amazon",
+  //     amount: "$5,000",
+  //     date: "Wed 1:00pm",
+  //     status: "paid",
+  //     account: "master-card",
+  //     accountNumber: "1234",
+  //     expiry: "06/2026",
+  //   },
+  //   {
+  //     img: "https://docs.material-tailwind.com/img/logos/logo-pinterest.svg",
+  //     name: "Pinterest",
+  //     amount: "$3,400",
+  //     date: "Mon 7:40pm",
+  //     status: "pending",
+  //     account: "master-card",
+  //     accountNumber: "1234",
+  //     expiry: "06/2026",
+  //   },
+  //   {
+  //     img: "https://docs.material-tailwind.com/img/logos/logo-google.svg",
+  //     name: "Google",
+  //     amount: "$1,000",
+  //     date: "Wed 5:00pm",
+  //     status: "paid",
+  //     account: "visa",
+  //     accountNumber: "1234",
+  //     expiry: "06/2026",
+  //   },
+  //   {
+  //     img: "https://docs.material-tailwind.com/img/logos/logo-netflix.svg",
+  //     name: "netflix",
+  //     amount: "$14,000",
+  //     date: "Wed 3:30am",
+  //     status: "cancelled",
+  //     account: "visa",
+  //     accountNumber: "1234",
+  //     expiry: "06/2026",
+  //   },
+  // ];
   return (
     <Card>
       <CardHeader floated={false} shadow={false} className="rounded-none">
@@ -169,7 +171,7 @@ openUpdateOrder
             <Input
               label="Search"
               icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-            onChange={e=>onFilter("",e.target.value)}
+              onChange={(e) => onFilter("", e.target.value)}
             />
           </div>
         </div>
@@ -196,7 +198,7 @@ openUpdateOrder
           </thead>
           <tbody>
             {currentItems?.map((item, index) => {
-              const isLast = index === TABLE_ROWS.length - 1;
+              const isLast = index === currentItems.length - 1;
               const classes = isLast
                 ? "p-4"
                 : "p-4 border-b border-blue-gray-50";
@@ -266,7 +268,7 @@ openUpdateOrder
                       size="sm"
                       variant="filled"
                       onClick={() => {
-                        openUpdateOrder(item)
+                        openUpdateOrder(item);
                       }}
                       className="text-center"
                       color={"green"}
@@ -313,17 +315,19 @@ openUpdateOrder
           Previous
         </Button>
         <div className="flex items-center gap-2">
-{Array.from({length:totalPage},(_,index)=>index+1).map(page =>(
- <IconButton variant="outlined" size="sm">
-            {page}
-          </IconButton>
-))}
-         
+          {Array.from({ length: totalPage }, (_, index) => index + 1).map(
+            (page) => (
+              <IconButton variant="outlined" size="sm">
+                {page}
+              </IconButton>
+            )
+          )}
         </div>
         <Button
           variant="outlined"
           size="sm"
           onClick={() => handlePage("Next")}
+          // disabled={false}
           disabled={page === totalPage}
         >
           Next

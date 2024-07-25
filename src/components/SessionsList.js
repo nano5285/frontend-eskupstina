@@ -18,16 +18,19 @@ export default function SessionsList({
   setAgendas,
   openUpdateSession,
   deleteSession,
-setSessionId,
-setFromSession
+  setSessionId,
+  setSessionName,
+  setFromSession,
 }) {
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
   useEffect(() => {
     const pageNumber = Math.ceil(sessions.length / 10);
     setTotalPage(pageNumber);
   }, []);
+
   const handlePage = (btn) => {
     if (btn === "Next") {
       setPage(page + 1);
@@ -41,12 +44,14 @@ setFromSession
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const currentItems = sessions.slice(indexOfFirstItem, indexOfLastItem);
+  // console.log(currentItems,"currentItems")
   const TABLE_HEAD = ["Sr. No.", "Name", "View", "Action"];
-  const handleAgendaList = (type, agendas,id,item) => {
+  const handleAgendaList = (type, agendas, id, item) => {
     setAgendas(agendas);
     setActive(type);
-    setSessionId(id)
-    setFromSession(item?.id)
+    setSessionId(id);
+    setSessionName(item?.name);
+    setFromSession(item?.id);
   };
   return (
     <Card>
@@ -72,12 +77,12 @@ setFromSession
             </tr>
           </thead>
           <tbody>
-            {sessions.map((item, index) => {
-              const isLast = index === sessions.length - 1;
+            {currentItems.map((item, index) => {
+              const isLast = index === currentItems.length - 1;
               const classes = isLast
                 ? "p-4"
                 : "p-4 border-b border-blue-gray-50";
-
+              // { console.log(item, 'item') }
               return (
                 <tr key={item?.name}>
                   <td className={classes}>
@@ -106,15 +111,19 @@ setFromSession
                       {item?.name}
                     </Typography>
                   </td>
-                  <td
-                    className={classes}
-                    
-                  >
+                  <td className={classes}>
                     <IconButton
                       variant="small"
                       color="blue-gray"
                       className="font-normal"
-                        onClick={() => handleAgendaList("Agenda", item?.agendas,item?.id,item)}
+                      onClick={() =>
+                        handleAgendaList(
+                          "Agenda",
+                          item?.agendas,
+                          item?.id,
+                          item
+                        )
+                      }
                     >
                       <EyeIcon className="h-4 w-4" />
                     </IconButton>
@@ -171,7 +180,7 @@ setFromSession
                   <td className={classes}>
                     <Tooltip content="Edit User">
                       <IconButton
-                       variant="small"
+                        variant="small"
                         color="amber"
                         onClick={() => openUpdateSession(item)}
                       >
@@ -179,8 +188,15 @@ setFromSession
                       </IconButton>
                     </Tooltip>
                     <Tooltip content="Delete User">
-                      <IconButton variant="small" className="ml-2" onClick={() => {deleteSession(item?.id)}} color="red">
-                        <TrashIcon className="h-4 w-4"/>
+                      <IconButton
+                        variant="small"
+                        className="ml-2"
+                        onClick={() => {
+                          deleteSession(item?.id);
+                        }}
+                        color="red"
+                      >
+                        <TrashIcon className="h-4 w-4" />
                       </IconButton>
                     </Tooltip>
                   </td>
@@ -195,22 +211,26 @@ setFromSession
           variant="outlined"
           size="sm"
           onClick={() => handlePage("Prev")}
+          // disabled={true}
           disabled={page === 1}
         >
           Previous
         </Button>
         <div className="flex items-center gap-2">
-         {Array.from({length:totalPage},(_,index)=>index+1).map(page =>(
- <IconButton variant="outlined" size="sm">
-            {page}
-          </IconButton>
-))}
+          {Array.from({ length: totalPage }, (_, index) => index + 1).map(
+            (page) => (
+              <IconButton variant="outlined" size="sm">
+                {page}
+              </IconButton>
+            )
+          )}
         </div>
         <Button
           variant="outlined"
           size="sm"
           onClick={() => handlePage("Next")}
           disabled={page === totalPage}
+          // disabled={true}
         >
           Next
         </Button>

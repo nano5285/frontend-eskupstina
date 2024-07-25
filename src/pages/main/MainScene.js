@@ -79,6 +79,7 @@ export default function MainScene(props) {
   socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
+
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
       if (agendaId) {
@@ -539,9 +540,10 @@ export default function MainScene(props) {
     }
     return false;
   }
+
   return (
     <>
-      <Navbar/>
+      <Navbar admin={admin} superAdmin={superAdmin} sessions={sessions} sessionChange={sessionChange} />
       <div className="">
         <div
           className={`${isFullScreen ? "p-[20px]" : "p-[0px]"
@@ -561,13 +563,13 @@ export default function MainScene(props) {
 
                   }}
                 >
-                  <FontAwesomeIcon
+                  {/* <FontAwesomeIcon
                     icon={faBars}
                     onClick={toggleLogout}
                     className="cursor-pointer side-bars"
-                  />
+                  /> */}
 
-                  <div
+                  {/* <div
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -670,9 +672,9 @@ export default function MainScene(props) {
                         <button className=" btn ml-2">Statistics</button>
                       </div>
                     )}
-                  </div>
+                  </div> */}
                 </div>
-                {showLogout && (
+                {/* {showLogout && (
                   <div className="mt-2">
                     {sessions.map((item) => (
                       <p
@@ -707,7 +709,7 @@ export default function MainScene(props) {
                       <button className="btn ml-2">Logout</button>
                     </div>
                   </div>
-                )}
+                )} */}
                 <div>
                   <h1 className="text-xl my-4 font-bold text-center px-5">
                     {currentSession.name}

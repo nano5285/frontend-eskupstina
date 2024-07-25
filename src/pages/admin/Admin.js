@@ -32,10 +32,11 @@ export const Admin = () => {
   const [active, setActive] = useState("list");
   const [selectedItem, setSelectedItem] = useState("");
   const [sessionId, setSessionId] = useState();
+  const [sessionName, setSessionName] = useState();
   const [orderNum, setOrderNum] = useState();
   const [currentOrderNum, setCurrentOrderNum] = useState();
   const [from, setFrom] = useState();
-  const [fromSession,setFromSession] = useState();
+  const [fromSession, setFromSession] = useState();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -61,9 +62,9 @@ export const Admin = () => {
   useEffect(() => {
     fetchSessions();
   }, []);
-  const fetchAgendas = async (type,text) => {
+  const fetchAgendas = async (type, text) => {
     try {
-      const res = await getAgendas(sessionId, type,text);
+      const res = await getAgendas(sessionId, type, text);
       setAgendas(res.data);
     } catch (error) {
       console.error("Error fetching sessions:", error);
@@ -113,7 +114,7 @@ export const Admin = () => {
 
   const handleInputChange = (event) => {
     const { name, value, files } = event.target;
-    
+
     setFormData((prevState) => ({
       ...prevState,
       [name]: files ? files[0] : value,
@@ -131,7 +132,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await createAgenda(formData,sessionId);
+        const result = await createAgenda(formData, sessionId);
         toast("Uspešno kreirana agenda");
         setFormData({
           title: "",
@@ -142,7 +143,7 @@ export const Admin = () => {
         });
         fetchAgendas();
         setActive("Agenda");
-        setFrom("")
+        setFrom("");
         setFromSession("");
       } catch (error) {
         toast.error("Greška pri kreiranju agende");
@@ -168,8 +169,8 @@ export const Admin = () => {
         });
         fetchSessions();
         setActive("add_agenda");
-        setFrom("Add")
-        setFromSession(result?.data?.id)
+        setFrom("Add");
+        setFromSession(result?.data?.id);
       } catch (error) {
         toast.error("Greška pri kreiranju sednice");
         console.error("Error creating session:", error);
@@ -229,7 +230,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
-        const result = await updateAgenda(formData, selectedItem,sessionId);
+        const result = await updateAgenda(formData, selectedItem, sessionId);
         if (result.status == 1) {
           toast("Uspešno uredjene sednice");
         } else {
@@ -251,7 +252,7 @@ export const Admin = () => {
       }
     }
   };
-const handleUpdateOrder = async () => {
+  const handleUpdateOrder = async () => {
     const form = document.getElementById("orderForm");
     if (form.checkValidity()) {
       try {
@@ -314,12 +315,12 @@ const handleUpdateOrder = async () => {
       pdf_path: agenda.pdf_path,
       agenda_type: agenda.agenda_type,
       session_id: agenda.session_id,
-      position:agenda.position
+      position: agenda.position,
     });
     setActive("update_agenda");
     setSelectedItem(agenda._id);
   };
- const openUpdateOrder = (agenda) => {
+  const openUpdateOrder = (agenda) => {
     setFormData({
       title: agenda.name,
       description: agenda.description,
@@ -332,42 +333,51 @@ const handleUpdateOrder = async () => {
     setActive("change_order");
     setSelectedItem(agenda._id);
   };
-  console.log(sessions, "sessions");
+  // console.log(sessions, "sessions");
   return (
     <div>
       <AdminNavigation />
       <div className="admin">
-        <p className="heading">Admin panel</p>
+        <p className="heading">
+        { active !== "list" ? <span>{sessionName} </span> : <span> Admin panel </span> }
+          </p>
         <div className="admin-content mt-10">
           <div className=" flex justify-between">
-<Button
-                variant="filled"
-                color="blue"
-                className={`${active == "list" ? "active-nav" : ""}`}
-                onClick={() => setActive("list")}
-              >
-                PRIKAZ
-              </Button>
-{active !== "Agenda"?
-            <><Button
-                className={`${active == "add_session" || active == "update_session"
-                    ? "active-nav"
-                    : ""}`}
-                color="blue"
-                variant="filled"
-                onClick={() => setActive("add_session")}
-              >
-                  DODAJ NOVU SEDNICU
-                </Button></>
-:
             <Button
-              className={`${active == "add_agenda" ? "active-nav" : ""}`}
-color="blue"
-variant="filled"
-              onClick={() => {setActive("add_agenda")}}
+              variant="filled"
+              color="blue"
+              className={`${active == "list" ? "active-nav" : ""}`}
+              onClick={() => setActive("list")}
             >
-              DODAJ NOVU AGENDU
-            </Button>}
+              PRIKAZ
+            </Button>
+            {active !== "Agenda" ? (
+              <>
+                <Button
+                  className={`${
+                    active == "add_session" || active == "update_session"
+                      ? "active-nav"
+                      : ""
+                  }`}
+                  color="blue"
+                  variant="filled"
+                  onClick={() => setActive("add_session")}
+                >
+                  DODAJ NOVU SEDNICU
+                </Button>
+              </>
+            ) : (
+              <Button
+                className={`${active == "add_agenda" ? "active-nav" : ""}`}
+                color="blue"
+                variant="filled"
+                onClick={() => {
+                  setActive("add_agenda");
+                }}
+              >
+                DODAJ NOVU AGENDU
+              </Button>
+            )}
           </div>
           {/* ADD AGGENDA */}
           {(active == "add_agenda" || active == "update_agenda") && (
@@ -416,6 +426,7 @@ variant="filled"
               <SessionsList
                 sessions={sessions}
                 setSessionId={setSessionId}
+                setSessionName={setSessionName}
                 setActive={setActive}
                 setAgendas={setAgendas}
                 openUpdateSession={openUpdateSession}

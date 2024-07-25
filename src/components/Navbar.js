@@ -1,46 +1,98 @@
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useNavigate } from "react-router-dom";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import {
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+  Button,
+} from "@material-tailwind/react";
+import {
+  faSignOutAlt,
+  faUser,
+  faSquarePlus,
+} from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../authContext";
 
-const Navbar = () => {
-    return(
-        <div>                        
-            <header className="header-menu">
-                <div className="side-bars">
-                    <p>faBars</p> 
-                    
-                </div>
+const Navbar = ({ admin, superAdmin, sessions, sessionChange }) => {
+  const navigate = useNavigate();
 
-                    <FontAwesomeIcon
-                    // icon={faBars}
-                    // onClick={toggleLogout}
-                    className="cursor-pointer "
-                     />
-                <div className="menu-content mid-btns">
-                    <ul>
-                        <li>
-                            <a href="#">Main</a>
-                        </li>
-                        <li>
-                            <a href="#">Admin</a>
-                        </li>
-                        <li>
-                            <a href="#">Super Admin</a>
-                        </li>
-                        <li>
-                            <a href="#">Statistics</a>
-                        </li>
-                    </ul>
-                </div>
+  // logout a user
+  const { logout } = useAuth();
+  const handleLogout = () => {
+    navigate("/");
+    logout();
+    localStorage.clear();
+  };
 
-                <div className="user-namee">
-                    <h5>Dragan Miličević</h5>
-                </div>
-            </header>
-            
-        </div>
-        
-    )
-}
+
+  return (
+    <>
+      <div>
+        <header className="header-menu">
+          <div className="side-bars">
+            <Menu placement="bottom-start">
+              <MenuHandler>
+                <FontAwesomeIcon icon={faBars} className="cursor-pointer " />
+              </MenuHandler>
+              <MenuList>
+                {sessions?.map((item) => (
+                  <MenuItem
+                    onClick={() => {
+                      sessionChange(item);
+                    }}
+                  >
+                    {item.name}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Menu>
+          </div>
+          <div className="menu-content mid-btns">
+            <ul>
+              <li onClick={() => navigate("/main")}>
+                <a>Main</a>
+              </li>
+              {(admin || superAdmin) && (
+                <li onClick={() => navigate("/admin")}>
+                  <a href="#">Admin</a>
+                </li>
+              )}
+              {superAdmin && (
+                <li onClick={() => navigate("/super-admin")}>
+                  <a href="#">Super Admin</a>
+                </li>
+              )}
+              {(admin || superAdmin) && (
+                <li onClick={() => navigate("/statistics")}>
+                  <a href="#">Statistics</a>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <div className="user-namee">
+            <Menu placement="bottom-start">
+              <MenuHandler>
+                <span className="cursor-pointer ">
+                  Dragan Miličević <FontAwesomeIcon icon={faUser} />
+                </span>
+              </MenuHandler>
+              <MenuList>
+                <MenuItem
+                    onClick={() => {handleLogout()}}
+                >Admin panel
+                  Logout
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </div>
+        </header>
+      </div>
+    </>
+  );
+};
 
 export default Navbar;
-
