@@ -13,7 +13,14 @@ import {
   resetVote,
   startVote,
 } from "../../services/axios";
-import { Button, button } from "@material-tailwind/react";
+import {
+  Button,
+  Menu,
+  MenuHandler,
+  MenuItem,
+  MenuList,
+  button,
+} from "@material-tailwind/react";
 import CloseAlert from "../../components/CloseAlert";
 import CustomButton from "../../components/CustomButton";
 import UserComponent from "../../components/UserComponent";
@@ -79,7 +86,8 @@ export default function MainScene(props) {
   socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
-
+const role = localStorage.getItem('role');
+console.log(role,"role------")
   useEffect(() => {
     socket.on("live_voting_results", async (agendaId) => {
       if (agendaId) {
@@ -96,16 +104,16 @@ export default function MainScene(props) {
         setCurrentSessions(currentSession);
         setCookie("currentSessionId", currentSessionId, 30);
 
-        const preAgendas = currentSession.agendas.filter(
+        const preAgendas = currentSession?.agendas.filter(
           (agenda) => agenda.agenda_type === "pre_agenda"
         );
-        const dailyAgendas = currentSession.agendas.filter(
+        const dailyAgendas = currentSession?.agendas.filter(
           (agenda) => agenda.agenda_type === "daily_agenda"
         );
         setPreAgenda(preAgendas);
         setDailyAgenda(dailyAgendas);
 
-        currentSession.agendas.forEach((item) => {
+        currentSession?.agendas.forEach((item) => {
           if (item?._id === agendaId) {
             const voteState = item.vote_state;
             setVotingAgenda(item);
@@ -377,7 +385,11 @@ export default function MainScene(props) {
   }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
 
   useEffect(() => {
-    const getAgendasAndUsers = async () => {
+   
+
+    getAgendasAndUsers();
+  }, [getUpdate, isReset, newAgenda]);
+const getAgendasAndUsers = async () => {
       const res = await getSessions();
       setSessions(res?.data);
       const currentSessionId = getCookie("currentSessionId")
@@ -391,12 +403,12 @@ export default function MainScene(props) {
       setCurrentSessions(currentSession);
       setCookie("currentSessionId", currentSessionId, 30);
 
-      const agendas = currentSession.agendas || [];
+      const agendas = currentSession?.agendas || [];
       // Separate agendas into preAgendas and dailyAgendas
-      const preAgendas = agendas.filter(
+      const preAgendas = agendas?.filter(
         (agenda) => agenda.agenda_type === "pre_agenda"
       );
-      const dailyAgendas = agendas.filter(
+      const dailyAgendas = agendas?.filter(
         (agenda) => agenda.agenda_type === "daily_agenda"
       );
       // Update preAgenda and dailyAgenda states
@@ -413,7 +425,7 @@ export default function MainScene(props) {
         updatedAgenda = preAgendas[0];
       } else {
         // Find selectedIndexAgenda in the updated agendas list
-        updatedAgenda = agendas.find(
+        updatedAgenda = agendas?.find(
           (agenda) => agenda._id === selectedIndexAgenda._id
         );
         setSelectedIndexAgenda(updatedAgenda || {});
@@ -462,10 +474,6 @@ export default function MainScene(props) {
         setNotVotedNum(yes + no + ab);
       }
     };
-
-    getAgendasAndUsers();
-  }, [getUpdate, isReset, newAgenda]);
-
   const checkAgendaState = () => {
     return selectedIndexAgenda.vote_state;
   };
@@ -502,14 +510,14 @@ export default function MainScene(props) {
     setShowModal(!showModal); // Show modal when plus icon is clicked
   };
 
-  const sessionChange = (item) => {
+  const  sessionChange = (item) => {
     setCurrentSessions(item);
     setCookie("currentSessionId", item.id, 30);
 
-    const preAgendas = item.agendas.filter(
+    const preAgendas = item?.agendas.filter(
       (agenda) => agenda.agenda_type === "pre_agenda"
     );
-    const dailyAgendas = item.agendas.filter(
+    const dailyAgendas = item?.agendas.filter(
       (agenda) => agenda.agenda_type === "daily_agenda"
     );
 
@@ -540,14 +548,16 @@ export default function MainScene(props) {
     }
     return false;
   }
+  const Year = ["2024", "2023", "2022"];
 
   return (
     <>
-      <Navbar admin={admin} superAdmin={superAdmin} sessions={sessions} sessionChange={sessionChange} />
+      {/* <Navbar admin={admin} superAdmin={superAdmin} sessions={sessions} sessionChange={sessionChange} /> */}
       <div className="">
         <div
-          className={`${isFullScreen ? "p-[20px]" : "p-[0px]"
-            }  h-screen  w-full  bg-[#ddd]`}
+          className={`${
+            isFullScreen ? "p-[20px]" : "p-[0px]"
+          }  h-screen  w-full  bg-[#ddd]`}
         >
           <div className="flex flex-col md:flex-row w-full gap-2 justify-between h-full ">
             {isFullScreen && (
@@ -559,8 +569,6 @@ export default function MainScene(props) {
                     alignItems: "baseline",
                     justifyContent: "space-between",
                     marginBottom: "5px",
-
-
                   }}
                 >
                   {/* <FontAwesomeIcon
@@ -711,9 +719,52 @@ export default function MainScene(props) {
                   </div>
                 )} */}
                 <div>
-                  <h1 className="text-xl my-4 font-bold text-center px-5">
-                    {currentSession.name}
-                  </h1>
+                  <Menu placement="bottom-start">
+                    <MenuHandler>
+                      <FontAwesomeIcon
+                        icon={faBars}
+                        className="cursor-pointer "
+                      />
+
+                    </MenuHandler>
+                     <MenuHandler >
+                <span className="cursor-pointer">
+                  Dragan Miličević <FontAwesomeIcon icon={faUser} />
+                </span>
+              </MenuHandler>
+                    <MenuList>
+                      {Year?.map((item) => (
+                        <MenuItem
+                          onClick={() => {
+                            getAgendasAndUsers(item);
+                          }}
+                        >
+                          {item}
+                        </MenuItem>
+                      ))}
+                      <div
+                        style={{
+                          borderTop:
+                            "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                          marginBottom: "5px",
+                        }}
+                      ></div>
+{role === "admin" &&
+                      <MenuItem onClick={() => navigate("/admin")}>
+                        Admin
+                      </MenuItem>}
+                      <MenuItem
+                        onClick={() => {
+                          handleLogout();
+                        }}
+                      >
+                        Logout
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                  {/* <h1 className="text-xl my-4 font-bold text-center px-5">
+                    {currentSession?.name}
+                  </h1> */}
                 </div>
                 <div
                   style={
@@ -727,9 +778,17 @@ export default function MainScene(props) {
                           "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
                         marginBottom: "5px",
                       }}
-                      
                     ></div>
                   </div>
+{sessions?.map((item) => (
+                  <MenuItem
+                    onClick={() => {
+                      sessionChange(item);
+                    }}
+                  >
+                    {item.name}
+                  </MenuItem>
+                ))}
                   {preAgenda.map((item, index) => {
                     return (
                       <CustomButton
@@ -783,8 +842,9 @@ export default function MainScene(props) {
               </div>
             )}
             <div
-              className={`${isFullScreen ? "md:basis-2/4" : "basis-full"
-                } relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`}
+              className={`${
+                isFullScreen ? "md:basis-2/4" : "basis-full"
+              } relative w-full h-[500px] md:h-full  bg-[#FFF] border-[2px] border-[#ccc] rounded-[8px]`}
             >
               {/* <PdfViewerComponent className="h-full" document={"http://52.158.47.57:8080/api/pdf?agenda=" + selectedIndex} /> */}
               {selectedAgendaPdf && (
@@ -879,9 +939,7 @@ export default function MainScene(props) {
                     );
                   })}
                 </div>
-                {admin && (
-                  <div className="w-full h-[120px]"></div>
-                )}
+                {admin && <div className="w-full h-[120px]"></div>}
                 {admin && (
                   <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
                     <Button
@@ -919,6 +977,7 @@ export default function MainScene(props) {
           handleOpen={changeVoteView}
         />
         {/* <ResultAlert open={resultOpen} resultData={resultData} handleClose={handleResultClose} /> */}
-      </div></>
+      </div>
+    </>
   );
 }
