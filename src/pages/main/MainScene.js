@@ -39,6 +39,7 @@ import { faBars } from "@fortawesome/free-solid-svg-icons";
 import AgendaDialog from "../../components/AgendaDialog";
 import isEqual from "lodash/isEqual";
 import Navbar from "../../components/Navbar";
+import { ChevronUpIcon } from "@heroicons/react/24/outline";
 
 export default function MainScene(props) {
   const { state } = useLocation();
@@ -66,6 +67,9 @@ export default function MainScene(props) {
   const [voteClose, setVoteClose] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [openMenuOne, setOpenMenuOne] = useState(false);
+  const [openMenuTwo, setOpenMenuTwo] = useState(false);
+  const [openMenuThree, setOpenMenuThree] = useState(false);
   const [superAdmin, setSuperAdmin] = useState(false);
   const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
@@ -332,13 +336,13 @@ export default function MainScene(props) {
         // Ensure selectedIndexAgenda is defined and not an empty object
         if (
           !selectedIndexAgenda ||
-          !selectedIndexAgenda._id ||
+          !selectedIndexAgenda?._id ||
           Object.keys(selectedIndexAgenda).length === 0
         ) {
           return;
         }
 
-        const res = await getAgenda2(selectedIndexAgenda._id);
+        const res = await getAgenda2(selectedIndexAgenda?._id);
         let tmp = null;
         if (!isEqual(res?.data, selectedIndexAgenda)) {
           setSelectedIndexAgenda(res?.data);
@@ -718,9 +722,9 @@ export default function MainScene(props) {
                   </div>
                 )} */}
                 <div>
-                  <Menu placement="bottom-start">
+                  <Menu placement="bottom-start" >
                     <div style={{ display: "flex", alignItems: "center" }}>
-                      <MenuHandler>
+                      <MenuHandler  >
                         <FontAwesomeIcon
                           icon={faBars}
                           className="cursor-pointer "
@@ -736,7 +740,7 @@ export default function MainScene(props) {
                       </MenuHandler>
                     </div>
                     <MenuList>
-                      {Year?.map((item) => (
+                      {/* {Year?.map((item) => (
                         <MenuItem
                           onClick={() => {
                             setYear(item);
@@ -744,7 +748,128 @@ export default function MainScene(props) {
                         >
                           {item}
                         </MenuItem>
-                      ))}
+                      ))} */}
+ <Menu
+          placement="right-start"
+          open={openMenuOne}
+          handler={setOpenMenuOne}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2024")}>
+              2024
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuOne ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                      
+                    >
+                       No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+<Menu
+          placement="right-start"
+          open={openMenuTwo}
+          handler={setOpenMenuTwo}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2023")}>
+              2023
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuTwo ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                      
+                    >
+                       No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+<Menu
+          placement="right-start"
+          open={openMenuThree}
+          handler={setOpenMenuThree}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2022")}>
+              2022
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuThree ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                     
+                    >
+                     No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+{/* {sessions?.length>0 && <div
+                        style={{
+                          borderTop:
+                            "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                          marginBottom: "5px",fontWeight:"bold"
+                        }}
+                      >Sessions</div>}
+{sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  ))} */}
                       <div
                         style={{
                           borderTop:
@@ -784,15 +909,7 @@ export default function MainScene(props) {
                       }}
                     ></div>
                   </div>
-                  {sessions?.map((item) => (
-                    <MenuItem
-                      onClick={() => {
-                        sessionChange(item);
-                      }}
-                    >
-                      {item.name}
-                    </MenuItem>
-                  ))}
+                  
 {preAgenda?.length && (
                     <div>
                       <div> Pre Agenda</div>
