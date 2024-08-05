@@ -17,16 +17,16 @@ export default function LoginScene() {
       password: password,
     };
     const res = await signInUser(signInData);
-    if (res.success) {
+    if (res?.success) {
       login();
       navigate("/main", {
         state: { role: res.role, userId: res.id },
       });
     } else {
-      setError(res.error); // Set error message from the response
+      setError(res?.error); // Set error message from the response
       localStorage.removeItem("token");
       // Handle different error cases based on the status code
-      setError(res.data);
+      setError(res?.data);
     }
   };
   return (

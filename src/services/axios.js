@@ -253,8 +253,10 @@ const resetVote = async (props) => {
 };
 
 const getSessions = async (props) => {
+  console.log(props,"prropsjkjk")
   try {
-    var result = await axios.get("/api/get_sessions/", props, {
+    var result = await axios.get("/api/get_sessions/",  {
+params:props,
       headers: {
         "Content-Type": "application/json",
       },
