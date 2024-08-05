@@ -793,6 +793,18 @@ export default function MainScene(props) {
                       {item.name}
                     </MenuItem>
                   ))}
+{preAgenda?.length && (
+                    <div>
+                      <div> Pre Agenda</div>
+                      <div
+                        style={{
+                          borderTop:
+                            "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
+                          marginBottom: "5px",
+                        }}
+                      ></div>
+                    </div>
+                  )}
                   {preAgenda?.map((item, index) => {
                     return (
                       <CustomButton
@@ -811,11 +823,11 @@ export default function MainScene(props) {
                   })}
                 </div>
                 <div
-                  style={
-                    showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                  }
+                  // style={
+                  //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                  // }
                 >
-                  {dailyAgenda.length && (
+                  {dailyAgenda?.length && (
                     <div>
                       <div> Dnevna Agenda</div>
                       <div
@@ -827,7 +839,7 @@ export default function MainScene(props) {
                       ></div>
                     </div>
                   )}
-                  {dailyAgenda.map((item, index) => {
+                  {dailyAgenda?.map((item, index) => {
                     return (
                       <CustomButton
                         key={index}
