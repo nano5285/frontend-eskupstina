@@ -1,6 +1,7 @@
 import { Route, Routes, BrowserRouter, Navigate } from "react-router-dom";
 import LoginScene from "../pages/auth/LoginScene";
 import MainScene from "../pages/main/MainScene";
+import OldMainScene from "../pages/main/old-MainScene";
 import TvScreen from "../pages/tv/TvScreen";
 import { useAuth } from "../authContext";
 import { Admin } from "../pages/admin/Admin";

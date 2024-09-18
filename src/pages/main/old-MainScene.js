@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { socket } from "../../utils/socket";
 import VoteAlert from "../../components/VoteAlert";
 import {
@@ -41,26 +42,27 @@ import Navbar from "../../components/Navbar";
 import { ChevronUpIcon } from "@heroicons/react/24/outline";
 
 export default function MainScene(props) {
+  const { state } = useLocation();
   const [party, setParty] = useState([]);
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [year, setYear] = useState("");
-  
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [yesNum, setYesNum] = useState(0);
   const [noNum, setNoNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
-
   const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [startedVote, setStartedVote] = useState();
   const [isFullScreen, setIsFullScreen] = useState(true);
   const [isReset, setIsReset] = useState(false);
   const [updateFlag, setUpdateFlag] = useState(false);
+  const userName = localStorage.getItem("userName");
   const [selectedAgendaPdf, setSelectedAgendaPdf] = useState();
   const [votingAgenda, setVotingAgenda] = useState();
   const [connected, setConnected] = useState();
   const navigate = useNavigate();
+  const currentUser = localStorage.getItem("userId");
   const [showLogout, setShowLogout] = useState(false);
   const [voteClose, setVoteClose] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -75,7 +77,7 @@ export default function MainScene(props) {
   const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
   const [getUpdate, setGetUpdate] = useState(false);
   const [sessions, setSessions] = useState([]);
-  const [currentSession, setCurrentSession] = useState({
+  const [currentSession, setCurrentSessions] = useState({
     id: "",
     name: "",
     agendas: [],
@@ -86,168 +88,248 @@ export default function MainScene(props) {
     pdf_path: "",
     agenda_type: "",
   });
-
   socket.on("user_disconnected", function () {
     setConnected(!connected);
   });
+  const role = localStorage.getItem("role");
+  const user = localStorage.getItem("userName");
+  console.log(role, "role------");
+  useEffect(() => {
+    socket.on("live_voting_results", async (agendaId) => {
+      if (agendaId) {
+        const res = await getSessions();
 
-  // Get user data from localStorage using useState
-  const [userName] = useState(localStorage.getItem("userName") || "");
-  const [currentUserId] = useState(localStorage.getItem("userId") || "");
-  const [role] = useState(localStorage.getItem("role") || "");
-  // console.log('user name:', userName)
-  // console.log('currentUserId:', currentUserId)
-  // console.log('role: ', role)
+        const currentSessionId = getCookie("currentSessionId")
+          ? getCookie("currentSessionId")
+          : res?.data[0].id;
 
-  /**
-   * WebSocket Event Handlers
-   * These functions handle events received from the WebSocket server.
-   */
-  // Handle live voting results
-  const handleLiveVotingResults = async (agendaId) => {
-    if (agendaId) {
-      const res = await getSessions();
+        const currentSession = res?.data.find(
+          (item) => item.id == currentSessionId
+        );
 
-      const currentSessionId = getCookie("currentSessionId")
-        ? getCookie("currentSessionId")
-        : res?.data[0].id;
+        setCurrentSessions(currentSession);
+        setCookie("currentSessionId", currentSessionId, 30);
 
-      const currentSession = res?.data.find(
-        (item) => item.id == currentSessionId
-      );
+        const preAgendas = currentSession?.agendas.filter(
+          (agenda) => agenda.agenda_type === "pre_agenda"
+        );
+        const dailyAgendas = currentSession?.agendas.filter(
+          (agenda) => agenda.agenda_type === "daily_agenda"
+        );
+        setPreAgenda(preAgendas);
+        setDailyAgenda(dailyAgendas);
 
-      setCurrentSession(currentSession);
-      setCookie("currentSessionId", currentSessionId, 30);
-
-      const preAgendas = currentSession?.agendas.filter(
-        (agenda) => agenda.agenda_type === "pre_agenda"
-      );
-      const dailyAgendas = currentSession?.agendas.filter(
-        (agenda) => agenda.agenda_type === "daily_agenda"
-      );
-      setPreAgenda(preAgendas);
-      setDailyAgenda(dailyAgendas);
-
-      currentSession?.agendas.forEach((item) => {
-        if (item?._id === agendaId) {
-          const voteState = item.vote_state;
-          setVotingAgenda(item);
-          if (voteState !== 2) {
-            if (item.vote_info) {
-              const exists = JSON.parse(item?.vote_info)?.some(
-                (element) =>
-                  element?.user_id === currentUserId
-              );
-              if (!exists) {
-                setOpen(true);
+        currentSession?.agendas.forEach((item) => {
+          if (item?._id === agendaId) {
+            const voteState = item.vote_state;
+            setVotingAgenda(item);
+            if (voteState !== 2) {
+              if (item.vote_info) {
+                const exists = JSON.parse(item?.vote_info)?.some(
+                  (element) =>
+                    element?.user_id === localStorage.getItem("userId")
+                );
+                if (!exists) {
+                  setOpen(true);
+                }
               }
             }
           }
-        }
-      });
-    }
-  };
-  
-  // Handle vote start
-  const handleVoteStart = (agendaId, agenda) => {
-    setVotingAgenda(agenda);
-    setOpen((prev) => !prev);
-    setGetUpdate((prev) => !prev);
-    setVoteClose(false);
-
-  };
-
-  // Handle vote update
-  const handleVoteUpdate = (message, agendaId, agenda) => {
-    setVotingAgenda(agenda);
-    setUpdateFlag((prev) => !prev);
-    updateVoteCounts(agenda?.vote_info);
-  };
-
-  // Handle vote close
-  const handleVoteClose = () => {
-    setOpen(false);
-    setVoteClose(true);
-  };
-
-  // Handle vote reset
-  const handleVoteReset = () => {
-    setOpen(false);
-    setVotingAgenda(null);
-    setGetUpdate((prev) => !prev);
-  };
-
-  // Handle user disconnection
-  const handleUserDisconnected = () => {
-    setConnected(false);
-  };
-
-
-  /**
-   * useEffect Hook for Socket Event Listeners
-   * Sets up the WebSocket event listeners when the component mounts.
-   */
-  useEffect(() => {
-    // Attach event listeners
-    socket.on("live_voting_results", handleLiveVotingResults);
-    socket.on("vote_start", handleVoteStart);
-    socket.on("vote_update", handleVoteUpdate);
-    socket.on("vote_close", handleVoteClose);
-    socket.on("vote_reset", handleVoteReset);
-    socket.on("user_disconnected", handleUserDisconnected);
-
-    // Cleanup function to remove event listeners when component unmounts
-    return () => {
-      socket.off("live_voting_results", handleLiveVotingResults);
-      socket.off("vote_start", handleVoteStart);
-      socket.off("vote_update", handleVoteUpdate);
-      socket.off("vote_close", handleVoteClose);
-      socket.off("vote_reset", handleVoteReset);
-      socket.off("user_disconnected", handleUserDisconnected);
-    };
+        });
+      }
+    });
   }, []);
 
+  socket.on("vote_start", function (agendaId, agenda) {
+    setVotingAgenda(agenda);
+    setOpen(!open);
+    setGetUpdate(!getUpdate);
+    setVoteClose(false);
+  });
+
+  socket.on("vote_update", function (message, agendaId, agenda) {
+    setVotingAgenda(agenda);
+    setUpdateFlag(!updateFlag);
+    let tmp = null;
+    if (agenda?.vote_info && agenda?.vote_info !== "undefined") {
+      tmp = JSON.parse(agenda.vote_info);
+    }
+    setSelectedAgenda(tmp);
+    if (tmp == null) {
+      setYesNum(0);
+      setNoNum(0);
+      setAbstrainedNum(0);
+      setNotVotedNum(0);
+      return;
+    }
+    // Counting the number of votes for each decision
+    const result = tmp?.reduce((acc, obj) => {
+      if (obj !== undefined && obj !== null) {
+        const key = obj.decision;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+      }
+      return acc;
+    }, {});
+
+    // Counting the number of objects for each decision
+    if (result) {
+      const yes = result["1"] ? result["1"].length : 0;
+      const no = result["0"] ? result["0"].length : 0;
+      const ab = result["2"] ? result["2"].length : 0;
+
+      // Setting the state variables
+      setYesNum(yes);
+      setNoNum(no);
+      setAbstrainedNum(ab);
+      setNotVotedNum(yes + no + ab);
+    }
+  });
+
+  socket.on("vote_close", function (data) {
+    setOpen(false);
+    setVoteClose(true);
+  });
+
+  socket.on("vote_reset", function (data) {
+    setOpen(false);
+    setVotingAgenda(null);
+    setGetUpdate(!getUpdate);
+  });
+
+  const changeVoteView = async (param) => {
+    if (role == "admin") {
+      setAdminOpen(!adminOpen);
+    }
+
+    setOpen(!open);
+    const voteData = {
+      user_id: currentUser,
+      agenda_id: selectedIndexAgenda._id,
+      decision: param,
+    };
+
+    console.log(
+      "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
+      voteData
+    );
+    socket.emit("vote_update", "message", selectedIndexAgenda._id, voteData);
+    if (!connected) {
+      await handleVote(voteData);
+    }
+  };
+
+  const sendVoteStart = async () => {
+    if (checkAgendaState() == 2) {
+      toast("Voting already closed!");
+      return;
+    }
+    const startVoteData = {
+      agenda_item_id: selectedIndexAgenda._id,
+    };
+    setStartedVote(startVoteData);
+    await startVote(startVoteData);
+    socket.emit("vote_start", selectedIndexAgenda._id, selectedIndexAgenda);
+  };
+
+  const sendVoteClose = async () => {
+    await closeVote(startedVote);
+    socket.emit("vote_update", "message", selectedIndexAgenda._id);
+    socket.emit(
+      "vote_close",
+      {
+        yesNum: yesNum,
+        noNum: noNum,
+        abstrainedNum: abstrainedNum,
+      },
+      selectedIndexAgenda._id
+    );
+    setAdminOpen(false);
+  };
+
+  const sendVoteReset = async () => {
+    const resetData = {
+      agenda_id: selectedIndexAgenda._id,
+    };
+    await resetVote(resetData);
+    setIsReset(!isReset);
+    socket.emit("vote_reset", "message", null);
+  };
 
   useEffect(() => {
-    updateVoteCounts(votingAgenda?.vote_info);
+    let tmp;
+    if (votingAgenda?.vote_info && votingAgenda?.vote_info !== "undefined") {
+      tmp = JSON.parse(votingAgenda?.vote_info);
+    }
+    setSelectedAgenda(tmp);
+    if (tmp == null) {
+      setYesNum(0);
+      setNoNum(0);
+      setAbstrainedNum(0);
+      setNotVotedNum(0);
+      return;
+    }
+    const result = tmp?.reduce((acc, obj) => {
+      if (obj !== undefined && obj !== null) {
+        const key = obj.decision;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+      }
+      return acc;
+    }, {});
+
+    // Counting the number of objects for each decision
+    if (result) {
+      const yes = result["1"] ? result["1"].length : 0;
+      const no = result["0"] ? result["0"].length : 0;
+      const ab = result["2"] ? result["2"].length : 0;
+
+      // Setting the state variables
+      setYesNum(yes);
+      setNoNum(no);
+      setAbstrainedNum(ab);
+      setNotVotedNum(yes + no + ab);
+    }
   }, [votingAgenda]);
 
-  /**
-   * Fetch Users Data
-   * Retrieves user information and organizes them by party.
-   */
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const resp = await getUser({ id: currentUserId });
-        const userData = resp?.data?.find((user) => user?._id === currentUserId);
-        if (userData?.role === "admin") {
+    const getUsers = async () => {
+      const userId = localStorage.getItem("userId");
+      const resp = await getUser({ id: userId });
+      if (userId) {
+        const user = resp?.data?.find((user) => user?._id === userId);
+
+        if (user.role === "admin") {
           setAdmin(true);
-        }
-        if (userData?.role === "super-admin") {
           setSuperAdmin(true);
         }
-        const partyGroups = resp?.data?.reduce((acc, obj) => {
-          const key = obj?.party;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(obj);
-          return acc;
-        }, {});
-        setParty(Object.keys(partyGroups));
-        setUsers(Object.values(partyGroups));
-      } catch (error) {
-        console.error("Error fetching users:", error);
+        if (user.role === "super-admin") {
+          setSuperAdmin(true);
+        }
       }
-    };
-    fetchUsers();
-  }, [currentUserId]);
+      const partyGroup2 = resp?.data?.reduce((acc, obj) => {
+        const key = obj?.party;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(obj);
+        return acc;
+      }, {});
 
-  /**
-   * Fetch Agenda by ID
-   * Retrieves the agenda details based on the selected agenda.
-   */
+      const partyNames = Object.keys(partyGroup2);
+      const partyUsers = Object.values(partyGroup2);
+
+      setParty(partyNames);
+      setUsers(partyUsers);
+    };
+    getUsers();
+  }, []);
   useEffect(() => {
     const getAgendaById = async () => {
       try {
@@ -261,13 +343,46 @@ export default function MainScene(props) {
         }
 
         const res = await getAgenda2(selectedIndexAgenda?._id);
-        
+        let tmp = null;
         if (!isEqual(res?.data, selectedIndexAgenda)) {
           setSelectedIndexAgenda(res?.data);
         }
+        if (res?.data?.vote_info && res?.data?.vote_info !== "undefined") {
+          tmp = JSON.parse(res?.data.vote_info);
+        }
+        setSelectedAgenda(tmp);
+        if (tmp == null) {
+          setYesNum(0);
+          setNoNum(0);
+          setAbstrainedNum(0);
+          setNotVotedNum(0);
+          return;
+        }
+        // Counting the number of votes for each decision
+        const result = tmp?.reduce((acc, obj) => {
+          if (obj !== undefined && obj !== null) {
+            const key = obj.decision;
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            acc[key].push(obj);
+            return acc;
+          }
+          return acc;
+        }, {});
 
-        updateVoteCounts(res?.data?.vote_info);
+        // Counting the number of objects for each decision
+        if (result) {
+          const yes = result["1"] ? result["1"].length : 0;
+          const no = result["0"] ? result["0"].length : 0;
+          const ab = result["2"] ? result["2"].length : 0;
 
+          // Setting the state variables
+          setYesNum(yes);
+          setNoNum(no);
+          setAbstrainedNum(ab);
+          setNotVotedNum(yes + no + ab);
+        }
       } catch (error) {
         console.error("Error fetching agenda by ID:", error);
       }
@@ -280,10 +395,6 @@ export default function MainScene(props) {
       getAgendasAndUsers({"year":year});
     }
   }, [getUpdate, isReset, newAgenda, year]);
-
-
-
-
   const getAgendasAndUsers = async (year) => {
     const res = await getSessions(year);
     setSessions(res?.data);
@@ -295,7 +406,7 @@ export default function MainScene(props) {
       (item) => item.id == currentSessionId
     );
 
-    setCurrentSession(currentSession);
+    setCurrentSessions(currentSession);
     setCookie("currentSessionId", currentSessionId, 30);
 
     const agendas = currentSession?.agendas || [];
@@ -327,23 +438,12 @@ export default function MainScene(props) {
       setSelectedAgendaPdf(updatedAgenda?._id || "");
     }
 
-    updateVoteCounts(updatedAgenda?.vote_info);
-
-  };
-
-
-  /**
-   * Update Vote Counts
-   * Parses the vote information and updates the vote counts.
-   * @param {string} voteInfoString - JSON string containing vote information.
-   */
-  const updateVoteCounts = (voteInfoString) => {
+    // Parse and update vote statistics
     let tmp = null;
-    if (voteInfoString) {
-      tmp = JSON.parse(voteInfoString);
+    if (updatedAgenda?.vote_info && updatedAgenda?.vote_info !== "undefined") {
+      tmp = JSON.parse(updatedAgenda.vote_info);
     }
     setSelectedAgenda(tmp);
-
     if (tmp == null) {
       setYesNum(0);
       setNoNum(0);
@@ -351,7 +451,6 @@ export default function MainScene(props) {
       setNotVotedNum(0);
       return;
     }
-
     // Counting the number of votes for each decision
     const result = tmp?.reduce((acc, obj) => {
       if (obj !== undefined && obj !== null) {
@@ -378,16 +477,12 @@ export default function MainScene(props) {
       setNotVotedNum(yes + no + ab);
     }
   };
-
-
-
   const checkAgendaState = () => {
     return selectedIndexAgenda.vote_state;
   };
 
   const getDecisionFromAgenda = (userId, voteInfo) => {
-    console.log('voteInfo(getDecisionFromAgenda): ', voteInfo);
-    if (voteInfo === null) return 3;
+    if (voteInfo == null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
         if (voteInfo[i]?.user_id == userId) {
@@ -419,7 +514,7 @@ export default function MainScene(props) {
   };
 
   const sessionChange = (item) => {
-    setCurrentSession(item);
+    setCurrentSessions(item);
     setCookie("currentSessionId", item.id, 30);
 
     const preAgendas = item?.agendas.filter(
@@ -457,69 +552,6 @@ export default function MainScene(props) {
     return false;
   }
   const Year = ["2024", "2023", "2022"];
-
-
-  const changeVoteView = async (param) => {
-    if (role === "admin") {
-      setAdminOpen((prev) => !prev);
-    }
-
-    setOpen((prev) => !prev);
-    const voteData = {
-      user_id: currentUserId,
-      agenda_id: selectedIndexAgenda._id,
-      decision: param,
-    };
-
-    console.log('selectedIndexAgenda: ', selectedIndexAgenda);
-    console.log(
-      "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
-      voteData
-    );
-    socket.emit("vote_update", "message", selectedIndexAgenda._id, voteData);
-    if (!connected) {
-      await handleVote(voteData);
-    }
-  };
-
-  const sendVoteStart = async () => {
-    if (checkAgendaState() == 2) {
-      toast("Voting already closed!");
-      return;
-    }
-    const startVoteData = {
-      agenda_item_id: selectedIndexAgenda._id,
-    };
-    setStartedVote(startVoteData);
-    await startVote(startVoteData);
-    socket.emit("vote_start", selectedIndexAgenda._id, selectedIndexAgenda);
-  };
-
-  const sendVoteClose = async () => {
-    await closeVote(startedVote);
-    socket.emit("vote_update", "message", selectedIndexAgenda._id);
-    
-    socket.emit(
-      "vote_close",
-      {
-        yesNum: yesNum,
-        noNum: noNum,
-        abstrainedNum: abstrainedNum,
-      },
-      selectedIndexAgenda._id
-    );
-    setAdminOpen(false);
-  };
-
-  const sendVoteReset = async () => {
-    const resetData = {
-      agenda_id: selectedIndexAgenda._id,
-    };
-    await resetVote(resetData);
-    setIsReset(!isReset);
-    socket.emit("vote_reset", "message", null);
-  };
-
 
   return (
     <>
@@ -703,7 +735,7 @@ export default function MainScene(props) {
                           className="cursor-pointer"
                           style={{ marginLeft: 10 }}
                         >
-                          <FontAwesomeIcon icon={faUser} /> {userName}
+                          <FontAwesomeIcon icon={faUser} /> {user}
                         </span>
                       </MenuHandler>
                     </div>
@@ -975,19 +1007,43 @@ export default function MainScene(props) {
                 </button>
               </div>
             </div>
-            
-            {/* Vote Counts and User List */}
             {isFullScreen && (
               <div className="relative flex flex-col items-center basis-1/4  border-[2px] border-[#ccc] rounded-[8px] bg-[#fff]  p-[20px]">
-              {/* Vote Counts */}
-              <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
-                <VoteCount label="Ukupno" count={notVotedNum} bgColor="#D9D9D9" textColor="#5B5B5B" />
-                <VoteCount label="Za" count={yesNum} bgColor="#4AD527" textColor="#FFFFFF" />
-                <VoteCount label="Suzdržano" count={abstrainedNum} bgColor="#377AFC" textColor="#FFFFFF" />
-                <VoteCount label="Protiv" count={noNum} bgColor="#EF4343" textColor="#FFFFFF" />
-              </div>
+                <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-full bg-[#D9D9D9] border-[2px] border-[#5B5B5B] text-[#5B5B5B]">
+                      {notVotedNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Ukupno
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#4AD527] border-[#5B5B5B] ">
+                      {yesNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Za
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#377AFC] border-[#5B5B5B] ">
+                      {abstrainedNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Suzdržano
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] text-[white] rounded-full bg-[#EF4343] border-[#5B5B5B] ">
+                      {noNum}
+                    </div>
+                    <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
+                      Protiv
+                    </div>
+                  </div>
+                </div>
 
-                {/* User List */}
                 <div className="w-full overflow-y-auto">
                   {party?.map((item, index) => {
                     return (
@@ -1056,27 +1112,5 @@ export default function MainScene(props) {
         {/* <ResultAlert open={resultOpen} resultData={resultData} handleClose={handleResultClose} /> */}
       </div>
     </>
-  );
-}
-
-
-/**
- * VoteCount Component
- * Displays individual vote counts with labels.
- * @param {Object} props - Component props.
- */
-function VoteCount({ label, count, bgColor, textColor }) {
-  return (
-    <div className="flex flex-col items-center">
-      <div
-        className="flex items-center justify-center w-[40px] h-[40px] md:w-[60px] md:h-[60px] rounded-full border-[2px] border-[#5B5B5B]"
-        style={{ backgroundColor: bgColor, color: textColor }}
-      >
-        {count}
-      </div>
-      <div className="w-[40px] md:w-[70px] text-[12px] text-center break-words">
-        {label}
-      </div>
-    </div>
   );
 }
