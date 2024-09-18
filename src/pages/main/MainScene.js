@@ -53,13 +53,13 @@ export default function MainScene(props) {
   const [notVotedNum, setNotVotedNum] = useState(0);
 
   const [selectedAgenda, setSelectedAgenda] = useState([]);
-  const [startedVote, setStartedVote] = useState();
+  const [startedVote, setStartedVote] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(true);
   const [isReset, setIsReset] = useState(false);
   const [updateFlag, setUpdateFlag] = useState(false);
-  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState();
-  const [votingAgenda, setVotingAgenda] = useState();
-  const [connected, setConnected] = useState();
+  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState(null);
+  const [votingAgenda, setVotingAgenda] = useState(null);
+  const [connected, setConnected] = useState(true);
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
   const [voteClose, setVoteClose] = useState(true);
@@ -87,10 +87,6 @@ export default function MainScene(props) {
     agenda_type: "",
   });
 
-  socket.on("user_disconnected", function () {
-    setConnected(!connected);
-  });
-
   // Get user data from localStorage using useState
   const [userName] = useState(localStorage.getItem("userName") || "");
   const [currentUserId] = useState(localStorage.getItem("userId") || "");
@@ -99,6 +95,29 @@ export default function MainScene(props) {
   // console.log('currentUserId:', currentUserId)
   // console.log('role: ', role)
 
+
+  const initializeDefaultSession = async () => {
+    const res = await getSessions();
+
+    let currentSessionId = getCookie("currentSessionId") || res?.data[0].id;
+    const currentSessionData = res?.data.find(
+      (item) => item.id === currentSessionId
+    );
+    setCurrentSession(currentSession);
+
+    const preAgendas = currentSessionData?.agendas.filter(
+      (agenda) => agenda.agenda_type === "pre_agenda"
+    );
+    const dailyAgendas = currentSessionData?.agendas.filter(
+      (agenda) => agenda.agenda_type === "daily_agenda"
+    );
+    setPreAgenda(preAgendas);
+    setDailyAgenda(dailyAgendas);    
+
+    return currentSession;
+  }
+
+
   /**
    * WebSocket Event Handlers
    * These functions handle events received from the WebSocket server.
@@ -106,28 +125,6 @@ export default function MainScene(props) {
   // Handle live voting results
   const handleLiveVotingResults = async (agendaId) => {
     if (agendaId) {
-      const res = await getSessions();
-
-      const currentSessionId = getCookie("currentSessionId")
-        ? getCookie("currentSessionId")
-        : res?.data[0].id;
-
-      const currentSession = res?.data.find(
-        (item) => item.id == currentSessionId
-      );
-
-      setCurrentSession(currentSession);
-      setCookie("currentSessionId", currentSessionId, 30);
-
-      const preAgendas = currentSession?.agendas.filter(
-        (agenda) => agenda.agenda_type === "pre_agenda"
-      );
-      const dailyAgendas = currentSession?.agendas.filter(
-        (agenda) => agenda.agenda_type === "daily_agenda"
-      );
-      setPreAgenda(preAgendas);
-      setDailyAgenda(dailyAgendas);
-
       currentSession?.agendas.forEach((item) => {
         if (item?._id === agendaId) {
           const voteState = item.vote_state;
@@ -161,7 +158,14 @@ export default function MainScene(props) {
   const handleVoteUpdate = (message, agendaId, agenda) => {
     setVotingAgenda(agenda);
     setUpdateFlag((prev) => !prev);
+    // take user to the agenda being voted 
+    if(selectedIndexAgenda._id !== agenda?._id) {
+      setSelectedIndexAgenda(agenda);
+      // setSelectedAgendaPdf(agenda?._id);
+    }
+    // show vote counts for the selected agenda.
     updateVoteCounts(agenda?.vote_info);
+
   };
 
   // Handle vote close
@@ -188,6 +192,7 @@ export default function MainScene(props) {
    * Sets up the WebSocket event listeners when the component mounts.
    */
   useEffect(() => {
+    initializeDefaultSession();
     // Attach event listeners
     socket.on("live_voting_results", handleLiveVotingResults);
     socket.on("vote_start", handleVoteStart);
@@ -253,8 +258,7 @@ export default function MainScene(props) {
       try {
         // Ensure selectedIndexAgenda is defined and not an empty object
         if (
-          !selectedIndexAgenda ||
-          !selectedIndexAgenda?._id ||
+          !selectedIndexAgenda._id ||
           Object.keys(selectedIndexAgenda).length === 0
         ) {
           return;
@@ -382,11 +386,10 @@ export default function MainScene(props) {
 
 
   const checkAgendaState = () => {
-    return selectedIndexAgenda.vote_state;
+    return selectedIndexAgenda?.vote_state;
   };
 
   const getDecisionFromAgenda = (userId, voteInfo) => {
-    console.log('voteInfo(getDecisionFromAgenda): ', voteInfo);
     if (voteInfo === null) return 3;
     else {
       for (var i = 0; i < voteInfo.length; i++) {
@@ -465,9 +468,12 @@ export default function MainScene(props) {
     }
 
     setOpen((prev) => !prev);
+
+    if(!selectedIndexAgenda) return;
+
     const voteData = {
       user_id: currentUserId,
-      agenda_id: selectedIndexAgenda._id,
+      agenda_id: selectedIndexAgenda?._id,
       decision: param,
     };
 
@@ -487,6 +493,10 @@ export default function MainScene(props) {
       toast("Voting already closed!");
       return;
     }
+    if(!selectedIndexAgenda._id) {
+      toast("Select an agenda to start voting for");
+      return;
+    } 
     const startVoteData = {
       agenda_item_id: selectedIndexAgenda._id,
     };
