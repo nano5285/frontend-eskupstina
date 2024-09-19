@@ -159,10 +159,10 @@ export default function MainScene(props) {
     setVotingAgenda(agenda);
     setUpdateFlag((prev) => !prev);
     // take user to the agenda being voted 
-    // if(selectedIndexAgenda._id !== agenda?._id) {
-    //   setSelectedIndexAgenda(agenda);
-    //   // setSelectedAgendaPdf(agenda?._id);
-    // }
+    if(selectedIndexAgenda?._id !== agenda?._id) {
+      setSelectedIndexAgenda(agenda);
+      // setSelectedAgendaPdf(agenda?._id);
+    }
     // show vote counts for the selected agenda.
     updateVoteCounts(agenda?.vote_info);
 
@@ -214,6 +214,7 @@ export default function MainScene(props) {
 
 
   useEffect(() => {
+
     updateVoteCounts(votingAgenda?.vote_info);
   }, [votingAgenda]);
 
@@ -469,7 +470,7 @@ export default function MainScene(props) {
 
     setOpen((prev) => !prev);
 
-    if(!selectedIndexAgenda) return;
+    // if(!selectedIndexAgenda?._id) return;
 
     const voteData = {
       user_id: currentUserId,
@@ -477,7 +478,7 @@ export default function MainScene(props) {
       decision: param,
     };
 
-    console.log('selectedIndexAgenda: ', selectedIndexAgenda);
+    // console.log('selectedIndexAgenda: ', selectedIndexAgenda);
     console.log(
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
