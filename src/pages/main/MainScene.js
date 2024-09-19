@@ -158,11 +158,13 @@ export default function MainScene(props) {
   const handleVoteUpdate = (message, agendaId, agenda) => {
     setVotingAgenda(agenda);
     setUpdateFlag((prev) => !prev);
-    // take user to the agenda being voted 
-    if(selectedIndexAgenda?._id !== agenda?._id) {
-      setSelectedIndexAgenda(agenda);
-      // setSelectedAgendaPdf(agenda?._id);
-    }
+
+    // // take user to the agenda being voted 
+    // if(selectedIndexAgenda?._id !== agenda?._id) {
+    //   setSelectedIndexAgenda(agenda);
+    //   // setSelectedAgendaPdf(agenda?._id);
+    // }
+
     // show vote counts for the selected agenda.
     updateVoteCounts(agenda?.vote_info);
 
