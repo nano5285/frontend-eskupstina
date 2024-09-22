@@ -2,14 +2,13 @@ import { Button } from "@material-tailwind/react";
 import { Dialog, DialogBody, DialogFooter } from "@material-tailwind/react";
 
 export default function CloseAlert(props) {
-  const { open, data, handleOpen, handleClose } = props;
+  const { open, data, handleClose } = props;
   const { yesNum, notVotedNum, abstrainedNum, noNum } = data;
 
   return (
     <div>
       <Dialog
         open={open}
-        handler={handleOpen}
         dismiss={{ onOutsideClick: false, onEscapeKey: false }}
       >
         <DialogBody>

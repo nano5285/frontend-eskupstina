@@ -12,41 +12,34 @@ export default function LoginScene() {
   const [noNum, setNoNum] = useState(0);
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
-
+  const [open, setOpen] = useState(false);
   const [agendaId, setAgendaId] = useState("");
-
+  const [updateChange, setUpdateChange] = useState(false);
   const [agenda, setAgenda] = useState("");
-
-  const [agendaVotes, setAgendaVotes] = useState([]);
-  const [agendaBeingVoted, setAgendaBeingVoted] = useState(null); 
-
-
   useEffect(() => {
-    socket.on("live_voting_results", (agendaId, currentAgendaVotes) => {
+    socket.on("live_voting_results", (agendaId) => {
       setAgendaId(agendaId);
-      setAgendaVotes(currentAgendaVotes);
     });
   }, []);
 
-  socket.on("vote_start", (agendaInfo) => {
-    setAgendaBeingVoted(agendaInfo);  
-    // setAgenda(agenda);
+  socket.on("message", function (data) {
+    setOpen(!open);
+    setUpdateChange(!updateChange);
   });
-
-  socket.on("vote_update", function (agendaId,  updatedAgendaVotes) {
-    // show vote counts for the selected agenda.
-    updateVoteCounts(updatedAgendaVotes);
+  socket.on("vote_start", (id, agenda) => {
+    setAgenda(agenda);
+  });
+  socket.on("vote_update", function (message, id, agenda) {
+    setAgenda(agenda);
   });
 
   socket.on("vote_close", function (id, agenda) {
-    setAgendaBeingVoted(null);
-
-    // setAgendaId(id);
-    // setAgenda(agenda);
+    setOpen(false);
+    setAgendaId(id);
+    setAgenda(agenda);
   });
   socket.on("vote_reset", function () {
-    // setAgenda(null);
-    setAgendaVotes([]);
+    setAgenda(null);
   });
   useEffect(() => {
     if (agendaId) {
@@ -80,43 +73,32 @@ export default function LoginScene() {
     getUsers();
   }, []);
 
-
   useEffect(() => {
-    updateVoteCounts(agendaVotes);
-  }, [agendaVotes]);
-
-  /**
-   * Update Vote Counts
-   * Parses the vote information and updates the vote counts.
-   * @param {string} votes - an array fo votes
-   */
-  const updateVoteCounts = (votes = []) => {
-
-    setAgendaVotes(votes);
-
-    if (votes.length === 0) {
-      setYesNum(0);
-      setNoNum(0);
-      setAbstrainedNum(0);
-      setNotVotedNum(0);
-      return;
-    }
-
-    // Counting the number of votes for each decision
-    const result = votes.reduce((acc, obj) => {
-      if (obj !== undefined && obj !== null) {
-        const key = obj.decision;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(obj);
-        return acc;
+    const getAgenda = async () => {
+      let tmp;
+      if (agenda && agenda?.vote_info && agenda?.vote_info !== "undefined") {
+        tmp = JSON.parse(agenda?.vote_info);
       }
-      return acc;
-    }, {});
+      if (tmp == null) {
+        setYesNum(0);
+        setNoNum(0);
+        setAbstrainedNum(0);
+        setNotVotedNum(0);
+        return;
+      }
+      const result = tmp?.reduce((acc, obj) => {
+        if (obj !== null && obj !== undefined) {
+          const key = obj?.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
+        }
+        return acc;
+      }, {});
 
-    // Counting the number of objects for each decision
-    if (result) {
+      // Counting the number of objects for each decision
       const yes = result["1"] ? result["1"].length : 0;
       const no = result["0"] ? result["0"].length : 0;
       const ab = result["2"] ? result["2"].length : 0;
@@ -126,21 +108,21 @@ export default function LoginScene() {
       setNoNum(no);
       setAbstrainedNum(ab);
       setNotVotedNum(yes + no + ab);
-    }
-  };
+    };
+    getAgenda();
+  }, [agenda]);
 
-  const getDecisionFromAgenda = (userId, votes = []) => {
-    if (votes.length === 0) return 3;
+  const getDecisionFromAgenda = (userId, voteInfo) => {
+    if (voteInfo == null) return 3;
     else {
-      for (var i = 0; i < votes.length; i++) {
-        if (votes[i]?.user_id == userId) {
-          return votes[i]?.decision;
+      for (var i = 0; i < voteInfo.length; i++) {
+        if (voteInfo[i]?.user_id === userId) {
+          return voteInfo[i].decision;
         }
       }
       return 3;
     }
   };
-  
   return (
     <div className="mt-4 ml-12 mr-12">
       <div className="text-center row justify-content-center">
@@ -149,7 +131,7 @@ export default function LoginScene() {
             className="mb-4 bold-title"
             style={{ fontWeight: "bold", fontSize: "50px" }}
           >
-            {agendaBeingVoted?.name}
+            {agenda?.name}
           </div>
           <div>
             <div className="flex flex-row w-full justify-around align-items-center bg-[#f5f5f5] rounded-[20px] p-[10px]">
@@ -208,7 +190,9 @@ export default function LoginScene() {
                               key={userItem._id}
                               decision={getDecisionFromAgenda(
                                 userItem._id,
-                                agendaVotes,
+                                agenda?.vote_info
+                                  ? JSON.parse(agenda?.vote_info)
+                                  : 3
                               )}
                               name={userItem.name}
                             />

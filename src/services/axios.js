@@ -6,7 +6,7 @@ import axios from "axios";
 /* http://52.158.47.57 */
 
 axios.defaults.baseURL =
-  process.env.REACT_APP_API_URL || 
+  process.env.REACT_APP_API_URL ||
   "https://backend-eskupstina.azurewebsites.net/";
 
 /*  axios.defaults.baseURL = "http://localhost:5005/";
@@ -67,7 +67,6 @@ const getUser = async (props) => {
   }
 };
 
-
 const getTvUsers = async (props) => {
   try {
     var result = await axios.get("/api/tv-users/", {
@@ -85,17 +84,17 @@ const getTvUsers = async (props) => {
 // Get users list
 // ------------------------------------------------------
 
-const usersList = async (page,search, sort) => {
+const usersList = async (page, search, sort) => {
   try {
     var result = await axios.get("/api/users/list/", {
       headers: {
         "Content-Type": "application/json",
       },
-      params : {
-        page : page,
-        search : search,
-        sort : sort,
-      }
+      params: {
+        page: page,
+        search: search,
+        sort: sort,
+      },
     });
     return result.data;
   } catch (error) {
@@ -103,22 +102,21 @@ const usersList = async (page,search, sort) => {
   }
 };
 
-
 // ------------------------------------------------------
 // Get sessions list
 // ------------------------------------------------------
 
-const sessionsList = async (page,search,sort) => {
+const sessionsList = async (page, search, sort) => {
   try {
     var result = await axios.get("/api/sessions/list/", {
       headers: {
         "Content-Type": "application/json",
       },
-      params : {
-        page : page,
-        search : search,
-        sort : sort,
-      }
+      params: {
+        page: page,
+        search: search,
+        sort: sort,
+      },
     });
     return result.data;
   } catch (error) {
@@ -130,16 +128,16 @@ const sessionsList = async (page,search,sort) => {
 // Get agendas list
 // ------------------------------------------------------
 
-const agendasList = async (page,search) => {
+const agendasList = async (page, search) => {
   try {
     var result = await axios.get("/api/agendas/list/", {
       headers: {
         "Content-Type": "application/json",
       },
-      params : {
-        page : page,
-        search : search
-      }
+      params: {
+        page: page,
+        search: search,
+      },
     });
     return result.data;
   } catch (error) {
@@ -154,6 +152,35 @@ const handleVote = async (props) => {
         "Content-Type": "application/json",
       },
     });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+const recordLiveVote = async (props) => {
+  try {
+    var result = await axios.post("/api/record_live_vote/", props, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+const liveVotes = async (props) => {
+  try {
+    var result = await axios.get(
+      `/api/live_votes/?${new URLSearchParams(props)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return result.data;
   } catch (error) {
     return error.response;
@@ -199,15 +226,15 @@ const closeVote = async (props) => {
   }
 };
 
-const createAgenda = async (props,session) => {
+const createAgenda = async (props, session) => {
   try {
     const formData = new FormData();
     formData.append("title", props.title);
     formData.append("description", props.description);
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
-    formData.append("session",session);
-    formData.append("position",props.position)
+    formData.append("session", session);
+    formData.append("position", props.position);
     const result = await axios.post("/api/agenda", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -219,7 +246,7 @@ const createAgenda = async (props,session) => {
   }
 };
 
-const updateAgenda = async (props, id,session) => {
+const updateAgenda = async (props, id, session) => {
   try {
     const formData = new FormData();
     formData.append("title", props.title);
@@ -227,7 +254,7 @@ const updateAgenda = async (props, id,session) => {
     formData.append("pdf_path", props.pdf_path);
     formData.append("agenda_type", props.agenda_type);
     formData.append("session", session);
-    formData.append("position",props.position)
+    formData.append("position", props.position);
     const result = await axios.put(`/api/update-agenda?id=${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -252,11 +279,11 @@ const resetVote = async (props) => {
   }
 };
 
-const getSessions = async (props) => {
-  console.log(props,"prropsjkjk")
+export const getSessionOrLatest = async (sessionId) => {
+  const query =
+    sessionId && sessionId !== "undefined" ? `?session_id=${sessionId}` : "";
   try {
-    var result = await axios.get("/api/get_sessions/",  {
-params:props,
+    var result = await axios.get(`/api/get_session_or_latest/${query}`, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -266,13 +293,28 @@ params:props,
     return error.response;
   }
 };
-const getAgendas = async (id,type,text) => {
-const params = new URLSearchParams();
- 
-    
-    if (type) params.append('agenda_type', type);
-if (id) params.append('session_id', id);
-if (text) params.append('search', text);
+
+const getSessions = async (props) => {
+  console.log(props, "prropsjkjk");
+  try {
+    var result = await axios.get("/api/get_sessions/", {
+      params: props,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
+const getAgendas = async (id, type, text) => {
+  const params = new URLSearchParams();
+
+  if (type) params.append("agenda_type", type);
+  if (id) params.append("session_id", id);
+  if (text) params.append("search", text);
   try {
     var result = await axios.get(`/api/get_all_agendas?${params}`, params, {
       headers: {
@@ -396,5 +438,7 @@ export {
   usersList,
   sessionsList,
   agendasList,
-getAgendas,
+  getAgendas,
+  liveVotes,
+  recordLiveVote,
 };

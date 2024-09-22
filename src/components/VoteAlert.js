@@ -3,6 +3,8 @@ import { Dialog, DialogHeader, DialogFooter } from "@material-tailwind/react";
 
 export default function VoteAlert(props) {
   const { open, handleOpen, agenda } = props;
+  console.log('agenda(VoteAlert): ', agenda);
+  const votedAgendaId = agenda?._id;
 
   return (
     <div>
@@ -17,14 +19,14 @@ export default function VoteAlert(props) {
           <Button
             variant="gradient"
             color="green"
-            onClick={() => handleOpen(1)}
+            onClick={() => handleOpen(1, votedAgendaId)}
           >
             <span>DA</span>
           </Button>
-          <Button variant="gradient" color="blue" onClick={() => handleOpen(2)}>
+          <Button variant="gradient" color="blue" onClick={() => handleOpen(2, votedAgendaId)}>
             <span>Suzdržan</span>
           </Button>
-          <Button variant="gradient" color="red" onClick={() => handleOpen(0)}>
+          <Button variant="gradient" color="red" onClick={() => handleOpen(0, votedAgendaId)}>
             <span>NE</span>
           </Button>
         </DialogFooter>
