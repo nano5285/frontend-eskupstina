@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../../utils/socket";
 import VoteAlert from "../../components/VoteAlert";
 import {
@@ -11,9 +11,6 @@ import {
   handleVote,
   resetVote,
   startVote,
-  liveVotes,
-  recordLiveVote,
-  getSessionOrLatest,
 } from "../../services/axios";
 import {
   Button,
@@ -49,18 +46,19 @@ export default function MainScene(props) {
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [year, setYear] = useState("");
-
+  
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [yesNum, setYesNum] = useState(0);
   const [noNum, setNoNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
 
-  // const [selectedAgenda, setSelectedAgenda] = useState([]);
+  const [selectedAgenda, setSelectedAgenda] = useState([]);
   const [startedVote, setStartedVote] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(true);
   const [isReset, setIsReset] = useState(false);
-  // const [updateFlag, setUpdateFlag] = useState(false);
-
+  const [updateFlag, setUpdateFlag] = useState(false);
+  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState(null);
+  const [votingAgenda, setVotingAgenda] = useState(null);
   const [connected, setConnected] = useState(true);
   const navigate = useNavigate();
   const [showLogout, setShowLogout] = useState(false);
@@ -71,22 +69,17 @@ export default function MainScene(props) {
   const [openMenuTwo, setOpenMenuTwo] = useState(false);
   const [openMenuThree, setOpenMenuThree] = useState(false);
   const [superAdmin, setSuperAdmin] = useState(false);
-
-  // const [newAgenda, setNewAgenda] = useState(false);
+  const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
   const [dailyAgenda, setDailyAgenda] = useState([]);
   const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
-  const [selectedAgendaPdf, setSelectedAgendaPdf] = useState(null);
-  const [agendaVotes, setAgendaVotes] = useState([]);
-
   const [getUpdate, setGetUpdate] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState({
-    _id: "",
+    id: "",
     name: "",
     agendas: [],
   });
-  // const [currentSession, setCurrentSession] = useState({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -98,136 +91,105 @@ export default function MainScene(props) {
   const [userName] = useState(localStorage.getItem("userName") || "");
   const [currentUserId] = useState(localStorage.getItem("userId") || "");
   const [role] = useState(localStorage.getItem("role") || "");
-
-  const [agendaBeingVoted, setAgendaBeingVoted] = useState(null);
-  const [canStartNewVoting, setCanStartNewVoting] = useState(true);
-
-
-  // Refs to hold the latest state values
-  const selectedIndexAgendaRef = useRef(selectedIndexAgenda);
-
-  // Update refs when states change
-  useEffect(() => {
-    console.log('useEffect: update selectedIndexAgendaRef...');
-    selectedIndexAgendaRef.current = selectedIndexAgenda;
-  }, [selectedIndexAgenda]);
+  // console.log('user name:', userName)
+  // console.log('currentUserId:', currentUserId)
+  // console.log('role: ', role)
 
 
   const initializeDefaultSession = async () => {
-    console.log("useEffect: initializeDefaultSession...");
-    const res = await getSessionOrLatest(getCookie("currentSessionId"));
-    const currentSessionData = res;
-    setYear(new Date(currentSessionData.start_time).getFullYear().toString());
-  };
+    const res = await getSessions();
+
+    let currentSessionId = getCookie("currentSessionId") || res?.data[0].id;
+    const currentSessionData = res?.data.find(
+      (item) => item.id === currentSessionId
+    );
+    setCurrentSession(currentSession);
+
+    const preAgendas = currentSessionData?.agendas.filter(
+      (agenda) => agenda.agenda_type === "pre_agenda"
+    );
+    const dailyAgendas = currentSessionData?.agendas.filter(
+      (agenda) => agenda.agenda_type === "daily_agenda"
+    );
+    setPreAgenda(preAgendas);
+    setDailyAgenda(dailyAgendas);    
+
+    return currentSession;
+  }
+
 
   /**
    * WebSocket Event Handlers
    * These functions handle events received from the WebSocket server.
    */
-
-  // Check voting permission
-  const handleCheckUserVotingPermission = (
-    currentAgendaId,
-    currentAgendaVotes
-  ) => {
-    currentSession?.agendas.forEach((agenda) => {
-      if (agenda?._id === currentAgendaId) {
-        const voteState = agenda.vote_state;
-        if (voteState !== 2) {
-          if (currentAgendaVotes.length !== 0) {
-            const exists = currentAgendaVotes.some(
-              (element) => element?.user_id === currentUserId
-            );
-            if (!exists) {
-              setOpen(true);
+  // Handle live voting results
+  const handleLiveVotingResults = async (agendaId) => {
+    if (agendaId) {
+      currentSession?.agendas.forEach((item) => {
+        if (item?._id === agendaId) {
+          const voteState = item.vote_state;
+          setVotingAgenda(item);
+          if (voteState !== 2) {
+            if (item.vote_info) {
+              const exists = JSON.parse(item?.vote_info)?.some(
+                (element) =>
+                  element?.user_id === currentUserId
+              );
+              if (!exists) {
+                setOpen(true);
+              }
             }
           }
         }
-      }
-    });
-  };
-
-  // Handle live voting results
-  const handleLiveVotingResults = (currentAgendaId, currentAgendaVotes) => {
-    
-    const selectedAgenda = selectedIndexAgendaRef.current;
-    console.log(
-      "selectedIndexAgenda(handleLiveVotingResults): ",
-      selectedAgenda
-    );
-    console.log("currentAgendaId(handleLiveVotingResults): ", currentAgendaId);
-    console.log(selectedIndexAgendaRef.current._id === currentAgendaId);
-    console.log("live votes: ", currentAgendaVotes);
-
-    if (!currentAgendaVotes) return;
-
-    // updateVoteCounts(currentAgendaVotes || []);
-
-    if (
-      selectedAgenda._id &&
-      selectedAgenda._id === currentAgendaId
-    ) {
-      updateVoteCounts(currentAgendaVotes || []);
+      });
     }
   };
-
+  
   // Handle vote start
-  const handleVoteStart = (agendaInfo) => {
-    setAgendaBeingVoted(agendaInfo);
-
-    const selectedAgenda = selectedIndexAgendaRef.current;
-    // take user to the agenda being voted
-    console.log("selectedIndexAgenda: ", selectedAgenda);
-
-    if (selectedAgenda?._id !== agendaInfo?._id) {
-      setSelectedIndexAgenda({ _id: agendaInfo._id });
-    }
-
+  const handleVoteStart = (agendaId, agenda) => {
+    setVotingAgenda(agenda);
     setOpen(true);
-    // setGetUpdate((prev) => !prev);
-    // setVoteClose(false);
+    setGetUpdate((prev) => !prev);
+    setVoteClose(false);
+
   };
 
-  // // Handle vote update
-  // const handleVoteUpdate = (agendaId, updatedAgendaVotes) => {
-  //   // show vote counts for the selected agenda.
-  //   updateVoteCounts(updatedAgendaVotes);
-  // };
+  // Handle vote update
+  const handleVoteUpdate = (message, agendaId, agenda) => {
+    setVotingAgenda(agenda);
+    setUpdateFlag((prev) => !prev);
+
+    // // take user to the agenda being voted 
+    // if(selectedIndexAgenda?._id !== agenda?._id) {
+    //   setSelectedIndexAgenda(agenda);
+    //   // setSelectedAgendaPdf(agenda?._id);
+    // }
+
+    // show vote counts for the selected agenda.
+    updateVoteCounts(agenda?.vote_info);
+
+  };
 
   // Handle vote close
   const handleVoteClose = () => {
-    setAgendaBeingVoted(null);
     setOpen(false);
     setVoteClose(true);
-    setGetUpdate((prev) => !prev);
+    initializeDefaultSession();
   };
 
   // Handle vote reset
-  const handleVoteReset = async (resetData) => {
+  const handleVoteReset = () => {
     setOpen(false);
-    // Initiate an update for agenda list for the lock icon update.
-    // Admin has already updated it when it clicked reset.
-    if (role !== "admin") {
-      setGetUpdate((prev) => !prev);
-    }
+    setVotingAgenda(null);
+    setGetUpdate((prev) => !prev);
+    initializeDefaultSession();
   };
-
-  const handleVotingSaved = () => {
-    setCanStartNewVoting(true);
-    // toast.success('All votes recorded for previous voting! You can start another voting!')
-  };
-
-  const handleVotingNotSaved = () => {};
 
   // Handle user disconnection
   const handleUserDisconnected = () => {
     setConnected(false);
   };
 
-  // Handle user connection
-  const handleUserConnected = () => {
-    setConnected(true);
-  };
 
   /**
    * useEffect Hook for Socket Event Listeners
@@ -236,102 +198,39 @@ export default function MainScene(props) {
   useEffect(() => {
     initializeDefaultSession();
     // Attach event listeners
-    socket.on("user_disconnected", handleUserDisconnected);
-    socket.on("check_user_voting_permission", handleCheckUserVotingPermission);
     socket.on("live_voting_results", handleLiveVotingResults);
     socket.on("vote_start", handleVoteStart);
-    // socket.on("vote_update", handleVoteUpdate);
+    socket.on("vote_update", handleVoteUpdate);
     socket.on("vote_close", handleVoteClose);
     socket.on("vote_reset", handleVoteReset);
-    socket.on("voting_saved", handleVotingSaved);
-    socket.on("voting_not_saved", handleVotingNotSaved);
+    socket.on("user_disconnected", handleUserDisconnected);
 
     // Cleanup function to remove event listeners when component unmounts
     return () => {
-      socket.off("user_disconnected", handleUserDisconnected);
-      socket.off(
-        "check_user_voting_permission",
-        handleCheckUserVotingPermission
-      );
       socket.off("live_voting_results", handleLiveVotingResults);
       socket.off("vote_start", handleVoteStart);
-      // socket.off("vote_update", handleVoteUpdate);
+      socket.off("vote_update", handleVoteUpdate);
       socket.off("vote_close", handleVoteClose);
       socket.off("vote_reset", handleVoteReset);
-      socket.off("voting_saved", handleVotingSaved);
-      socket.off("voting_not_saved", handleVotingNotSaved);
+      socket.off("user_disconnected", handleUserDisconnected);
     };
   }, []);
 
+
   useEffect(() => {
-    console.log("useEffect: updates with year: ", year);
-    if (year) {
-      getAgendasAndUsers({ year: year });
-    }
-  }, [getUpdate, year]);
 
-  /**
-   * Fetch Agenda by ID
-   * Retrieves the agenda details based on the selected agenda.
-   */
-  useEffect(() => {
-    console.log(
-      "useEffect: updating selectedIndexAgenda:",
-      selectedIndexAgenda._id
-    );
-    const getAgendaById = async () => {
-      try {
-        // Ensure selectedIndexAgenda is defined and not an empty object
-        if (
-          !selectedIndexAgenda._id ||
-          Object.keys(selectedIndexAgenda).length === 0
-        ) {
-          return;
-        }
-
-        const res = await getAgenda2(selectedIndexAgenda?._id);
-        const latestAgenda = res?.data;
-        // console.log("latestAgenda: ", latestAgenda);
-
-        if (!isEqual(latestAgenda, selectedIndexAgenda)) {
-          setSelectedIndexAgenda(latestAgenda);
-        }
-
-        // if agenda's vote is in progress, pull live votes
-        if (agendaBeingVoted && agendaBeingVoted._id === latestAgenda._id) {
-          const liveVoteResponse = await liveVotes({
-            agenda_id: latestAgenda._id,
-          });
-          updateVoteCounts(liveVoteResponse.votes);
-          console.log("updating live votes for selected agenda..");
-        } else {
-          updateVoteCounts(latestAgenda.votes);
-          console.log("updating stored votes for selected agenda..");
-        }
-      } catch (error) {
-        console.error("Error fetching agenda by ID:", error);
-      }
-    };
-    getAgendaById();
-  }, [selectedIndexAgenda]);
-  // }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
-
-  // useEffect(() => {
-  //   updateVoteCounts(agendaVotes);
-  // }, [agendaVotes]);
+    updateVoteCounts(votingAgenda?.vote_info);
+  }, [votingAgenda]);
 
   /**
    * Fetch Users Data
    * Retrieves user information and organizes them by party.
    */
   useEffect(() => {
-    console.log("useEffect: fetchUsers...");
     const fetchUsers = async () => {
       try {
         const resp = await getUser({ id: currentUserId });
-        const userData = resp?.data?.find(
-          (user) => user?._id === currentUserId
-        );
+        const userData = resp?.data?.find((user) => user?._id === currentUserId);
         if (userData?.role === "admin") {
           setAdmin(true);
         }
@@ -355,15 +254,54 @@ export default function MainScene(props) {
     fetchUsers();
   }, [currentUserId]);
 
+  /**
+   * Fetch Agenda by ID
+   * Retrieves the agenda details based on the selected agenda.
+   */
+  useEffect(() => {
+    const getAgendaById = async () => {
+      try {
+        // Ensure selectedIndexAgenda is defined and not an empty object
+        if (
+          !selectedIndexAgenda._id ||
+          Object.keys(selectedIndexAgenda).length === 0
+        ) {
+          return;
+        }
+
+        const res = await getAgenda2(selectedIndexAgenda?._id);
+        
+        if (!isEqual(res?.data, selectedIndexAgenda)) {
+          setSelectedIndexAgenda(res?.data);
+        }
+
+        updateVoteCounts(res?.data?.vote_info);
+
+      } catch (error) {
+        console.error("Error fetching agenda by ID:", error);
+      }
+    };
+    getAgendaById();
+  }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
+
+  useEffect(() => {
+    if (year) {
+      getAgendasAndUsers({"year":year});
+    }
+  }, [getUpdate, isReset, newAgenda, year]);
+
+
+
+
   const getAgendasAndUsers = async (year) => {
     const res = await getSessions(year);
     setSessions(res?.data);
     const currentSessionId = getCookie("currentSessionId")
       ? getCookie("currentSessionId")
-      : res?.data[0]._id;
+      : res?.data[0].id;
 
     const currentSession = res?.data?.find(
-      (item) => item._id == currentSessionId
+      (item) => item.id == currentSessionId
     );
 
     setCurrentSession(currentSession);
@@ -398,18 +336,24 @@ export default function MainScene(props) {
       setSelectedAgendaPdf(updatedAgenda?._id || "");
     }
 
-    updateVoteCounts(updatedAgenda?.votes);
+    updateVoteCounts(updatedAgenda?.vote_info);
+
   };
+
 
   /**
    * Update Vote Counts
    * Parses the vote information and updates the vote counts.
    * @param {string} voteInfoString - JSON string containing vote information.
    */
-  const updateVoteCounts = (votes = []) => {
-    setAgendaVotes(votes);
+  const updateVoteCounts = (voteInfoString) => {
+    let tmp = null;
+    if (voteInfoString) {
+      tmp = JSON.parse(voteInfoString);
+    }
+    setSelectedAgenda(tmp);
 
-    if (votes.length === 0) {
+    if (tmp == null) {
       setYesNum(0);
       setNoNum(0);
       setAbstrainedNum(0);
@@ -418,7 +362,7 @@ export default function MainScene(props) {
     }
 
     // Counting the number of votes for each decision
-    const result = votes.reduce((acc, obj) => {
+    const result = tmp?.reduce((acc, obj) => {
       if (obj !== undefined && obj !== null) {
         const key = obj.decision;
         if (!acc[key]) {
@@ -444,12 +388,18 @@ export default function MainScene(props) {
     }
   };
 
-  const getDecisionFromAgenda = (userId, votes = []) => {
-    if (votes.length === 0) return 3;
+
+
+  // const checkAgendaState = () => {
+  //   return selectedIndexAgenda?.vote_state;
+  // };
+
+  const getDecisionFromAgenda = (userId, voteInfo) => {
+    if (voteInfo === null) return 3;
     else {
-      for (var i = 0; i < votes.length; i++) {
-        if (votes[i]?.user_id == userId) {
-          return votes[i]?.decision;
+      for (var i = 0; i < voteInfo.length; i++) {
+        if (voteInfo[i]?.user_id == userId) {
+          return voteInfo[i]?.decision;
         }
       }
       return 3;
@@ -478,7 +428,7 @@ export default function MainScene(props) {
 
   const sessionChange = (item) => {
     setCurrentSession(item);
-    setCookie("currentSessionId", item._id, 30);
+    setCookie("currentSessionId", item.id, 30);
 
     const preAgendas = item?.agendas.filter(
       (agenda) => agenda.agenda_type === "pre_agenda"
@@ -516,7 +466,9 @@ export default function MainScene(props) {
   }
   const Year = ["2024", "2023", "2022"];
 
+
   const changeVoteView = async (decision, votedAgendaId) => {
+
     setOpen(false);
 
     if (role === "admin") {
@@ -536,49 +488,17 @@ export default function MainScene(props) {
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    console.log();
-    // pull latest live votes
-    const res = await liveVotes({
-      agenda_id: votedAgendaId,
-    });
-    console.log("currentVotes: ", res);
-    // only if user has not voted already, it should send its vote
-
-    const existingVoteIndex = res.votes.findIndex((vote) => {
-      console.log(
-        "Have I already voted?",
-        vote.user_id,
-        typeof vote.user_id,
-        currentUserId,
-        typeof currentUserId,
-        vote.user_id === currentUserId
-      );
-      return vote.user_id === currentUserId;
-    });
-
-    console.log("existingVoteIndex: ", existingVoteIndex);
-    if (existingVoteIndex !== -1) return;
-
-    socket.emit("vote_update", voteData);
-
-    // // prefer sending result over sockets
-    // if(connected) {
-    //   socket.emit("vote_update", voteData);
-    // } else {
-    //   await recordLiveVote(voteData);
-    // }
+    socket.emit("vote_update", "message", votedAgendaId, voteData);
+    if (!connected) {
+      await handleVote(voteData);
+    }
   };
 
   const sendVoteStart = async () => {
-    if (!canStartNewVoting) {
-      toast("Please wait for sometime! Saving earlier votes!");
-      return;
-    }
-
-    if (!selectedIndexAgenda._id) {
+    if(!selectedIndexAgenda._id) {
       toast("Select an agenda to start voting for");
       return;
-    }
+    } 
 
     if (selectedIndexAgenda?.vote_state === 2) {
       toast("Voting already closed!");
@@ -590,16 +510,13 @@ export default function MainScene(props) {
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_start", selectedIndexAgenda);
-
-    // admin cannot start a new voting unless the current one is fully saved
-    setCanStartNewVoting(false);
+    socket.emit("vote_start", selectedIndexAgenda._id, selectedIndexAgenda);
   };
 
   const sendVoteClose = async () => {
     await closeVote(startedVote);
-    // socket.emit("vote_update", "message", selectedIndexAgenda._id);
-
+    socket.emit("vote_update", "message", selectedIndexAgenda._id);
+    
     socket.emit("vote_close", selectedIndexAgenda._id);
     setAdminOpen(false);
   };
@@ -609,9 +526,10 @@ export default function MainScene(props) {
       agenda_id: selectedIndexAgenda._id,
     };
     await resetVote(resetData);
-    setGetUpdate((prev) => !prev);
-    socket.emit("vote_reset", resetData);
+    setIsReset(!isReset);
+    socket.emit("vote_reset", null);
   };
+
 
   return (
     <>
@@ -782,9 +700,9 @@ export default function MainScene(props) {
                   </div>
                 )} */}
                 <div>
-                  <Menu placement="bottom-start">
+                  <Menu placement="bottom-start" >
                     <div style={{ display: "flex", alignItems: "center" }}>
-                      <MenuHandler>
+                      <MenuHandler  >
                         <FontAwesomeIcon
                           icon={faBars}
                           className="cursor-pointer "
@@ -809,109 +727,112 @@ export default function MainScene(props) {
                           {item}
                         </MenuItem>
                       ))} */}
-                      <Menu
-                        placement="right-start"
-                        open={openMenuOne}
-                        handler={setOpenMenuOne}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2024")}>
-                            2024
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuOne ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      <Menu
-                        placement="right-start"
-                        open={openMenuTwo}
-                        handler={setOpenMenuTwo}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2023")}>
-                            2023
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuTwo ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      <Menu
-                        placement="right-start"
-                        open={openMenuThree}
-                        handler={setOpenMenuThree}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2022")}>
-                            2022
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuThree ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      {/* {sessions?.length>0 && <div
+ <Menu
+          placement="right-start"
+          open={openMenuOne}
+          handler={setOpenMenuOne}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2024")}>
+              2024
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuOne ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                      
+                    >
+                       No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+<Menu
+          placement="right-start"
+          open={openMenuTwo}
+          handler={setOpenMenuTwo}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2023")}>
+              2023
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuTwo ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                      
+                    >
+                       No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+<Menu
+          placement="right-start"
+          open={openMenuThree}
+          handler={setOpenMenuThree}
+          allowHover
+
+          offset={15}
+        >
+          <MenuHandler className="flex items-center justify-between">
+            <MenuItem onMouseEnter={()=>setYear("2022")}>
+              2022
+              <ChevronUpIcon
+                strokeWidth={2.5}
+                className={`h-3.5 w-3.5 transition-transform ${
+                  openMenuThree ? "rotate-90" : ""
+                }`}
+              />
+            </MenuItem>
+          </MenuHandler>
+          <MenuList>
+            {sessions.length>0 ?sessions?.map((item) => (
+                    <MenuItem
+                      onClick={() => {
+                        sessionChange(item);
+                      }}
+                    >
+                      {item.name}
+                    </MenuItem>
+                  )):<MenuItem
+                     
+                    >
+                     No Data
+                    </MenuItem>}
+          </MenuList>
+        </Menu>
+{/* {sessions?.length>0 && <div
                         style={{
                           borderTop:
                             "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
@@ -953,9 +874,9 @@ export default function MainScene(props) {
                   </h1> */}
                 </div>
                 <div
-                // style={
-                //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                // }
+                  // style={
+                  //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                  // }
                 >
                   <div>
                     <div
@@ -966,8 +887,8 @@ export default function MainScene(props) {
                       }}
                     ></div>
                   </div>
-
-                  {preAgenda?.length && (
+                  
+{preAgenda?.length && (
                     <div>
                       <div> Pre Agenda</div>
                       <div
@@ -982,13 +903,13 @@ export default function MainScene(props) {
                   {preAgenda?.map((item, index) => {
                     return (
                       <CustomButton
-                        key={item._id}
+                        key={index}
                         selected={item._id == selectedIndexAgenda._id}
                         index={index + 1}
                         locked={item.vote_state == 2}
                         name={item.name}
                         onClick={() => {
-                          // setGetUpdate(!getUpdate);
+                          setGetUpdate(!getUpdate);
                           setSelectedIndexAgenda(preAgenda[index]);
                           setSelectedAgendaPdf(preAgenda[index]?._id);
                         }}
@@ -997,9 +918,9 @@ export default function MainScene(props) {
                   })}
                 </div>
                 <div
-                // style={
-                //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                // }
+                  // style={
+                  //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                  // }
                 >
                   {dailyAgenda?.length && (
                     <div>
@@ -1016,7 +937,7 @@ export default function MainScene(props) {
                   {dailyAgenda?.map((item, index) => {
                     return (
                       <CustomButton
-                        key={item._id}
+                        key={index}
                         selected={item._id == selectedIndexAgenda._id}
                         index={index + 1}
                         locked={dailyAgenda[index].vote_state == 2}
@@ -1064,41 +985,17 @@ export default function MainScene(props) {
                 </button>
               </div>
             </div>
-
+            
             {/* Vote Counts and User List */}
             {isFullScreen && (
               <div className="relative flex flex-col items-center basis-1/4  border-[2px] border-[#ccc] rounded-[8px] bg-[#fff]  p-[20px]">
-                {/* Vote Counts */}
-                <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
-                  <VoteCount
-                    key="Ukupno"
-                    label="Ukupno"
-                    count={notVotedNum}
-                    bgColor="#D9D9D9"
-                    textColor="#5B5B5B"
-                  />
-                  <VoteCount
-                    key="Za"
-                    label="Za"
-                    count={yesNum}
-                    bgColor="#4AD527"
-                    textColor="#FFFFFF"
-                  />
-                  <VoteCount
-                    key="Suzdržano"
-                    label="Suzdržano"
-                    count={abstrainedNum}
-                    bgColor="#377AFC"
-                    textColor="#FFFFFF"
-                  />
-                  <VoteCount
-                    key="Protiv"
-                    label="Protiv"
-                    count={noNum}
-                    bgColor="#EF4343"
-                    textColor="#FFFFFF"
-                  />
-                </div>
+              {/* Vote Counts */}
+              <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
+                <VoteCount label="Ukupno" count={notVotedNum} bgColor="#D9D9D9" textColor="#5B5B5B" />
+                <VoteCount label="Za" count={yesNum} bgColor="#4AD527" textColor="#FFFFFF" />
+                <VoteCount label="Suzdržano" count={abstrainedNum} bgColor="#377AFC" textColor="#FFFFFF" />
+                <VoteCount label="Protiv" count={noNum} bgColor="#EF4343" textColor="#FFFFFF" />
+              </div>
 
                 {/* User List */}
                 <div className="w-full overflow-y-auto">
@@ -1118,7 +1015,7 @@ export default function MainScene(props) {
                                   key={userItem._id}
                                   decision={getDecisionFromAgenda(
                                     userItem._id,
-                                    agendaVotes
+                                    selectedAgenda
                                   )}
                                   name={userItem.name}
                                 />
@@ -1160,10 +1057,10 @@ export default function MainScene(props) {
             )}
           </div>
         </div>
-        {agendaBeingVoted && (
+        {votingAgenda && (
           <VoteAlert
             open={open}
-            agenda={agendaBeingVoted}
+            agenda={votingAgenda}
             handleOpen={changeVoteView}
           />
         )}
@@ -1172,6 +1069,7 @@ export default function MainScene(props) {
     </>
   );
 }
+
 
 /**
  * VoteCount Component

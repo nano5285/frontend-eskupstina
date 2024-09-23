@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { getTvUsers } from "../../services/axios";
 import "./tv.css";
 import UserComponent from "../../components/UserComponent";
@@ -12,67 +12,44 @@ export default function LoginScene() {
   const [noNum, setNoNum] = useState(0);
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
-
-  const [agendaId, setAgendaId] = useState(null);
-  const [agenda, setAgenda] = useState(null);
-  const [agendaVotes, setAgendaVotes] = useState([]);
-
-  // Refs to hold the latest state values
-  const agendaIdRef = useRef(agendaId);
-
-  // Update refs when states change
+  const [open, setOpen] = useState(false);
+  const [agendaId, setAgendaId] = useState("");
+  const [updateChange, setUpdateChange] = useState(false);
+  const [agenda, setAgenda] = useState("");
   useEffect(() => {
-    console.log("useEffect: update agendaIdRef...");
-    agendaIdRef.current = agendaId;
-  }, [agendaId]);
-
-  useEffect(() => {
-    socket.on("live_voting_results", (currentAgendaId, currentAgendaVotes) => {
-
-      console.log('currentAgendaId, currentAgendaVotes', currentAgendaId, currentAgendaVotes);
-      console.log('agendaIdRef.current: ', agendaIdRef.current);
-      
-      if (!currentAgendaId) return;
-
-      if(!agendaIdRef.current || agendaIdRef.current !== currentAgendaId) {
-        setAgendaId(currentAgendaId);
-      }
-
-      if (currentAgendaVotes) {
-        updateVoteCounts(currentAgendaVotes || []);
-      }
+    socket.on("live_voting_results", (agendaId) => {
+      setAgendaId(agendaId);
     });
   }, []);
 
-  socket.on("vote_start", (agendaInfo) => {
-    setAgenda(agendaInfo);
-    updateVoteCounts([]);
+  socket.on("message", function (data) {
+    setOpen(!open);
+    setUpdateChange(!updateChange);
+  });
+  socket.on("vote_start", (id, agenda) => {
+    setAgenda(agenda);
+  });
+  socket.on("vote_update", function (message, id, agenda) {
+    setAgenda(agenda);
   });
 
-  socket.on("vote_close", function (id) {
+  socket.on("vote_close", function (id, agenda) {
+    setOpen(false);
     setAgendaId(id);
+    setAgenda(agenda);
   });
-  
   socket.on("vote_reset", function () {
-    setAgendaId(null);
     setAgenda(null);
-    updateVoteCounts([]);
   });
-
   useEffect(() => {
     if (agendaId) {
       const getdata = async () => {
         const res = await getAgenda2(agendaId);
         setAgenda(res.data);
-        if(res.data.vote_state === 2) {
-          updateVoteCounts(res.data.votes);
-          console.log("updating stored votes for selected agenda..");
-        }
       };
       getdata();
     }
   }, [agendaId]);
-
   useEffect(() => {
     const getUsers = async () => {
       const resp = await getTvUsers();
@@ -96,37 +73,32 @@ export default function LoginScene() {
     getUsers();
   }, []);
 
-  /**
-   * Update Vote Counts
-   * Parses the vote information and updates the vote counts.
-   * @param {string} votes - an array fo votes
-   */
-  const updateVoteCounts = (votes = []) => {
-    setAgendaVotes(votes);
-
-    if (votes.length === 0) {
-      setYesNum(0);
-      setNoNum(0);
-      setAbstrainedNum(0);
-      setNotVotedNum(0);
-      return;
-    }
-
-    // Counting the number of votes for each decision
-    const result = votes.reduce((acc, obj) => {
-      if (obj !== undefined && obj !== null) {
-        const key = obj.decision;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(obj);
-        return acc;
+  useEffect(() => {
+    const getAgenda = async () => {
+      let tmp;
+      if (agenda && agenda?.vote_info && agenda?.vote_info !== "undefined") {
+        tmp = JSON.parse(agenda?.vote_info);
       }
-      return acc;
-    }, {});
+      if (tmp == null) {
+        setYesNum(0);
+        setNoNum(0);
+        setAbstrainedNum(0);
+        setNotVotedNum(0);
+        return;
+      }
+      const result = tmp?.reduce((acc, obj) => {
+        if (obj !== null && obj !== undefined) {
+          const key = obj?.decision;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
+        }
+        return acc;
+      }, {});
 
-    // Counting the number of objects for each decision
-    if (result) {
+      // Counting the number of objects for each decision
       const yes = result["1"] ? result["1"].length : 0;
       const no = result["0"] ? result["0"].length : 0;
       const ab = result["2"] ? result["2"].length : 0;
@@ -136,21 +108,21 @@ export default function LoginScene() {
       setNoNum(no);
       setAbstrainedNum(ab);
       setNotVotedNum(yes + no + ab);
-    }
-  };
+    };
+    getAgenda();
+  }, [agenda]);
 
-  const getDecisionFromAgenda = (userId, votes = []) => {
-    if (votes.length === 0) return 3;
+  const getDecisionFromAgenda = (userId, voteInfo) => {
+    if (voteInfo == null) return 3;
     else {
-      for (var i = 0; i < votes.length; i++) {
-        if (votes[i]?.user_id == userId) {
-          return votes[i]?.decision;
+      for (var i = 0; i < voteInfo.length; i++) {
+        if (voteInfo[i]?.user_id === userId) {
+          return voteInfo[i].decision;
         }
       }
       return 3;
     }
   };
-
   return (
     <div className="mt-4 ml-12 mr-12">
       <div className="text-center row justify-content-center">
@@ -218,7 +190,9 @@ export default function LoginScene() {
                               key={userItem._id}
                               decision={getDecisionFromAgenda(
                                 userItem._id,
-                                agendaVotes
+                                agenda?.vote_info
+                                  ? JSON.parse(agenda?.vote_info)
+                                  : 3
                               )}
                               name={userItem.name}
                             />
