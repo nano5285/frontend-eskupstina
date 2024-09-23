@@ -206,10 +206,7 @@ export default function MainScene(props) {
   const handleVoteReset = async (resetData) => {
     setOpen(false);
     // Initiate an update for agenda list for the lock icon update.
-    // Admin has already updated it when it clicked reset.
-    if (role !== "admin") {
-      setGetUpdate((prev) => !prev);
-    }
+    setGetUpdate((prev) => !prev);
   };
 
   const handleVotingSaved = () => {
@@ -609,7 +606,7 @@ export default function MainScene(props) {
       agenda_id: selectedIndexAgenda._id,
     };
     await resetVote(resetData);
-    setGetUpdate((prev) => !prev);
+    // setGetUpdate((prev) => !prev);
     socket.emit("vote_reset", resetData);
   };
 
