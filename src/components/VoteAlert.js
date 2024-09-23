@@ -3,7 +3,7 @@ import { Dialog, DialogHeader, DialogFooter } from "@material-tailwind/react";
 
 export default function VoteAlert(props) {
   const { open, handleOpen, agenda } = props;
-  console.log('agenda(VoteAlert): ', agenda);
+  // console.log('agenda(VoteAlert): ', agenda);
   const votedAgendaId = agenda?._id;
 
   return (

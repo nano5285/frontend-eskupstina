@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getTvUsers } from "../../services/axios";
 import "./tv.css";
 import UserComponent from "../../components/UserComponent";
@@ -13,50 +13,66 @@ export default function LoginScene() {
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [notVotedNum, setNotVotedNum] = useState(0);
 
-  const [agendaId, setAgendaId] = useState("");
-
-  const [agenda, setAgenda] = useState("");
-
+  const [agendaId, setAgendaId] = useState(null);
+  const [agenda, setAgenda] = useState(null);
   const [agendaVotes, setAgendaVotes] = useState([]);
-  const [agendaBeingVoted, setAgendaBeingVoted] = useState(null); 
 
+  // Refs to hold the latest state values
+  const agendaIdRef = useRef(agendaId);
+
+  // Update refs when states change
+  useEffect(() => {
+    console.log("useEffect: update agendaIdRef...");
+    agendaIdRef.current = agendaId;
+  }, [agendaId]);
 
   useEffect(() => {
-    socket.on("live_voting_results", (agendaId, currentAgendaVotes) => {
-      setAgendaId(agendaId);
-      setAgendaVotes(currentAgendaVotes);
+    socket.on("live_voting_results", (currentAgendaId, currentAgendaVotes) => {
+
+      console.log('currentAgendaId, currentAgendaVotes', currentAgendaId, currentAgendaVotes);
+      console.log('agendaIdRef.current: ', agendaIdRef.current);
+      
+      if (!currentAgendaId) return;
+
+      if(!agendaIdRef.current || agendaIdRef.current !== currentAgendaId) {
+        setAgendaId(currentAgendaId);
+      }
+
+      if (currentAgendaVotes) {
+        updateVoteCounts(currentAgendaVotes || []);
+      }
     });
   }, []);
 
   socket.on("vote_start", (agendaInfo) => {
-    setAgendaBeingVoted(agendaInfo);  
-    // setAgenda(agenda);
+    setAgenda(agendaInfo);
+    updateVoteCounts([]);
   });
 
-  socket.on("vote_update", function (agendaId,  updatedAgendaVotes) {
-    // show vote counts for the selected agenda.
-    updateVoteCounts(updatedAgendaVotes);
+  socket.on("vote_close", function (id) {
+    setAgendaId(id);
   });
-
-  socket.on("vote_close", function (id, agenda) {
-    setAgendaBeingVoted(null);
-
-    // setAgendaId(id);
-    // setAgenda(agenda);
-  });
+  
   socket.on("vote_reset", function () {
-    // setAgenda(null);
-    setAgendaVotes([]);
+    setAgendaId(null);
+    setAgenda(null);
+    updateVoteCounts([]);
   });
+
   useEffect(() => {
     if (agendaId) {
       const getdata = async () => {
         const res = await getAgenda2(agendaId);
         setAgenda(res.data);
+        if(res.data.vote_state === 2) {
+          updateVoteCounts(res.data.votes);
+          console.log("updating stored votes for selected agenda..");
+        }
       };
       getdata();
     }
   }, [agendaId]);
+
   useEffect(() => {
     const getUsers = async () => {
       const resp = await getTvUsers();
@@ -80,18 +96,12 @@ export default function LoginScene() {
     getUsers();
   }, []);
 
-
-  useEffect(() => {
-    updateVoteCounts(agendaVotes);
-  }, [agendaVotes]);
-
   /**
    * Update Vote Counts
    * Parses the vote information and updates the vote counts.
    * @param {string} votes - an array fo votes
    */
   const updateVoteCounts = (votes = []) => {
-
     setAgendaVotes(votes);
 
     if (votes.length === 0) {
@@ -140,7 +150,7 @@ export default function LoginScene() {
       return 3;
     }
   };
-  
+
   return (
     <div className="mt-4 ml-12 mr-12">
       <div className="text-center row justify-content-center">
@@ -149,7 +159,7 @@ export default function LoginScene() {
             className="mb-4 bold-title"
             style={{ fontWeight: "bold", fontSize: "50px" }}
           >
-            {agendaBeingVoted?.name}
+            {agenda?.name}
           </div>
           <div>
             <div className="flex flex-row w-full justify-around align-items-center bg-[#f5f5f5] rounded-[20px] p-[10px]">
@@ -208,7 +218,7 @@ export default function LoginScene() {
                               key={userItem._id}
                               decision={getDecisionFromAgenda(
                                 userItem._id,
-                                agendaVotes,
+                                agendaVotes
                               )}
                               name={userItem.name}
                             />

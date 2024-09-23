@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from "../../utils/socket";
 import VoteAlert from "../../components/VoteAlert";
 import {
@@ -72,7 +72,7 @@ export default function MainScene(props) {
   const [openMenuThree, setOpenMenuThree] = useState(false);
   const [superAdmin, setSuperAdmin] = useState(false);
 
-  const [newAgenda, setNewAgenda] = useState(false);
+  // const [newAgenda, setNewAgenda] = useState(false);
   const [preAgenda, setPreAgenda] = useState([]);
   const [dailyAgenda, setDailyAgenda] = useState([]);
   const [selectedIndexAgenda, setSelectedIndexAgenda] = useState({});
@@ -82,10 +82,11 @@ export default function MainScene(props) {
   const [getUpdate, setGetUpdate] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [currentSession, setCurrentSession] = useState({
-    id: "",
+    _id: "",
     name: "",
     agendas: [],
   });
+  // const [currentSession, setCurrentSession] = useState({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -97,26 +98,26 @@ export default function MainScene(props) {
   const [userName] = useState(localStorage.getItem("userName") || "");
   const [currentUserId] = useState(localStorage.getItem("userId") || "");
   const [role] = useState(localStorage.getItem("role") || "");
-  // console.log('user name:', userName)
-  // console.log('currentUserId:', currentUserId)
-  // console.log('role: ', role)
 
   const [agendaBeingVoted, setAgendaBeingVoted] = useState(null);
   const [canStartNewVoting, setCanStartNewVoting] = useState(true);
 
+
+  // Refs to hold the latest state values
+  const selectedIndexAgendaRef = useRef(selectedIndexAgenda);
+
+  // Update refs when states change
+  useEffect(() => {
+    console.log('useEffect: update selectedIndexAgendaRef...');
+    selectedIndexAgendaRef.current = selectedIndexAgenda;
+  }, [selectedIndexAgenda]);
+
+
   const initializeDefaultSession = async () => {
+    console.log("useEffect: initializeDefaultSession...");
     const res = await getSessionOrLatest(getCookie("currentSessionId"));
     const currentSessionData = res;
-    setCurrentSession(currentSessionData);
-
-    const preAgendas = currentSessionData?.agendas.filter(
-      (agenda) => agenda.agenda_type === "pre_agenda"
-    );
-    const dailyAgendas = currentSessionData?.agendas.filter(
-      (agenda) => agenda.agenda_type === "daily_agenda"
-    );
-    setPreAgenda(preAgendas);
-    setDailyAgenda(dailyAgendas);
+    setYear(new Date(currentSessionData.start_time).getFullYear().toString());
   };
 
   /**
@@ -148,23 +149,43 @@ export default function MainScene(props) {
 
   // Handle live voting results
   const handleLiveVotingResults = (currentAgendaId, currentAgendaVotes) => {
-    setAgendaVotes(currentAgendaVotes);
+    
+    const selectedAgenda = selectedIndexAgendaRef.current;
+    console.log(
+      "selectedIndexAgenda(handleLiveVotingResults): ",
+      selectedAgenda
+    );
+    console.log("currentAgendaId(handleLiveVotingResults): ", currentAgendaId);
+    console.log(selectedIndexAgendaRef.current._id === currentAgendaId);
+    console.log("live votes: ", currentAgendaVotes);
+
+    if (!currentAgendaVotes) return;
+
+    // updateVoteCounts(currentAgendaVotes || []);
+
+    if (
+      selectedAgenda._id &&
+      selectedAgenda._id === currentAgendaId
+    ) {
+      updateVoteCounts(currentAgendaVotes || []);
+    }
   };
 
   // Handle vote start
   const handleVoteStart = (agendaInfo) => {
     setAgendaBeingVoted(agendaInfo);
+
+    const selectedAgenda = selectedIndexAgendaRef.current;
     // take user to the agenda being voted
-    if (selectedIndexAgenda?._id !== agendaInfo?._id) {
-      const currentAgenda = currentSession.agendas.find(
-        (agenda) => agenda._id === agendaInfo._id
-      );
-      setSelectedIndexAgenda(currentAgenda);
+    console.log("selectedIndexAgenda: ", selectedAgenda);
+
+    if (selectedAgenda?._id !== agendaInfo?._id) {
+      setSelectedIndexAgenda({ _id: agendaInfo._id });
     }
 
     setOpen(true);
-    setGetUpdate((prev) => !prev);
-    setVoteClose(false);
+    // setGetUpdate((prev) => !prev);
+    // setVoteClose(false);
   };
 
   // // Handle vote update
@@ -178,15 +199,17 @@ export default function MainScene(props) {
     setAgendaBeingVoted(null);
     setOpen(false);
     setVoteClose(true);
-    // initializeDefaultSession();
+    setGetUpdate((prev) => !prev);
   };
 
   // Handle vote reset
-  const handleVoteReset = () => {
+  const handleVoteReset = async (resetData) => {
     setOpen(false);
-    setAgendaVotes([]);
-    setGetUpdate((prev) => !prev);
-    // initializeDefaultSession();
+    // Initiate an update for agenda list for the lock icon update.
+    // Admin has already updated it when it clicked reset.
+    if (role !== "admin") {
+      setGetUpdate((prev) => !prev);
+    }
   };
 
   const handleVotingSaved = () => {
@@ -226,7 +249,7 @@ export default function MainScene(props) {
     // Cleanup function to remove event listeners when component unmounts
     return () => {
       socket.off("user_disconnected", handleUserDisconnected);
-      socket.on(
+      socket.off(
         "check_user_voting_permission",
         handleCheckUserVotingPermission
       );
@@ -241,14 +264,68 @@ export default function MainScene(props) {
   }, []);
 
   useEffect(() => {
-    updateVoteCounts(agendaVotes);
-  }, [agendaVotes]);
+    console.log("useEffect: updates with year: ", year);
+    if (year) {
+      getAgendasAndUsers({ year: year });
+    }
+  }, [getUpdate, year]);
+
+  /**
+   * Fetch Agenda by ID
+   * Retrieves the agenda details based on the selected agenda.
+   */
+  useEffect(() => {
+    console.log(
+      "useEffect: updating selectedIndexAgenda:",
+      selectedIndexAgenda._id
+    );
+    const getAgendaById = async () => {
+      try {
+        // Ensure selectedIndexAgenda is defined and not an empty object
+        if (
+          !selectedIndexAgenda._id ||
+          Object.keys(selectedIndexAgenda).length === 0
+        ) {
+          return;
+        }
+
+        const res = await getAgenda2(selectedIndexAgenda?._id);
+        const latestAgenda = res?.data;
+        // console.log("latestAgenda: ", latestAgenda);
+
+        if (!isEqual(latestAgenda, selectedIndexAgenda)) {
+          setSelectedIndexAgenda(latestAgenda);
+        }
+
+        // if agenda's vote is in progress, pull live votes
+        if (agendaBeingVoted && agendaBeingVoted._id === latestAgenda._id) {
+          const liveVoteResponse = await liveVotes({
+            agenda_id: latestAgenda._id,
+          });
+          updateVoteCounts(liveVoteResponse.votes);
+          console.log("updating live votes for selected agenda..");
+        } else {
+          updateVoteCounts(latestAgenda.votes);
+          console.log("updating stored votes for selected agenda..");
+        }
+      } catch (error) {
+        console.error("Error fetching agenda by ID:", error);
+      }
+    };
+    getAgendaById();
+  }, [selectedIndexAgenda]);
+  // }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
+
+  // useEffect(() => {
+  //   updateVoteCounts(agendaVotes);
+  // }, [agendaVotes]);
 
   /**
    * Fetch Users Data
    * Retrieves user information and organizes them by party.
    */
   useEffect(() => {
+    console.log("useEffect: fetchUsers...");
     const fetchUsers = async () => {
       try {
         const resp = await getUser({ id: currentUserId });
@@ -278,44 +355,8 @@ export default function MainScene(props) {
     fetchUsers();
   }, [currentUserId]);
 
-  /**
-   * Fetch Agenda by ID
-   * Retrieves the agenda details based on the selected agenda.
-   */
-  useEffect(() => {
-    const getAgendaById = async () => {
-      try {
-        // Ensure selectedIndexAgenda is defined and not an empty object
-        if (
-          !selectedIndexAgenda._id ||
-          Object.keys(selectedIndexAgenda).length === 0
-        ) {
-          return;
-        }
-
-        const res = await getAgenda2(selectedIndexAgenda?._id);
-
-        if (!isEqual(res?.data, selectedIndexAgenda)) {
-          setSelectedIndexAgenda(res?.data);
-        }
-
-        updateVoteCounts(res?.data?.votes);
-      } catch (error) {
-        console.error("Error fetching agenda by ID:", error);
-      }
-    };
-    getAgendaById();
-  }, [selectedIndexAgenda, getUpdate, voteClose, connected]);
-
-  useEffect(() => {
-    if (year) {
-      getAgendasAndUsers({ year: year });
-    }
-  }, [getUpdate, isReset, newAgenda, year]);
-
   const getAgendasAndUsers = async (year) => {
     const res = await getSessions(year);
-    console.log('res(getAgendasAndUsers):', res);
     setSessions(res?.data);
     const currentSessionId = getCookie("currentSessionId")
       ? getCookie("currentSessionId")
@@ -507,7 +548,9 @@ export default function MainScene(props) {
       console.log(
         "Have I already voted?",
         vote.user_id,
+        typeof vote.user_id,
         currentUserId,
+        typeof currentUserId,
         vote.user_id === currentUserId
       );
       return vote.user_id === currentUserId;
@@ -566,8 +609,8 @@ export default function MainScene(props) {
       agenda_id: selectedIndexAgenda._id,
     };
     await resetVote(resetData);
-    setIsReset(!isReset);
-    socket.emit("vote_reset", null);
+    setGetUpdate((prev) => !prev);
+    socket.emit("vote_reset", resetData);
   };
 
   return (
@@ -939,13 +982,13 @@ export default function MainScene(props) {
                   {preAgenda?.map((item, index) => {
                     return (
                       <CustomButton
-                        key={index}
+                        key={item._id}
                         selected={item._id == selectedIndexAgenda._id}
                         index={index + 1}
                         locked={item.vote_state == 2}
                         name={item.name}
                         onClick={() => {
-                          setGetUpdate(!getUpdate);
+                          // setGetUpdate(!getUpdate);
                           setSelectedIndexAgenda(preAgenda[index]);
                           setSelectedAgendaPdf(preAgenda[index]?._id);
                         }}
@@ -973,7 +1016,7 @@ export default function MainScene(props) {
                   {dailyAgenda?.map((item, index) => {
                     return (
                       <CustomButton
-                        key={index}
+                        key={item._id}
                         selected={item._id == selectedIndexAgenda._id}
                         index={index + 1}
                         locked={dailyAgenda[index].vote_state == 2}
@@ -1028,24 +1071,28 @@ export default function MainScene(props) {
                 {/* Vote Counts */}
                 <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
                   <VoteCount
+                    key="Ukupno"
                     label="Ukupno"
                     count={notVotedNum}
                     bgColor="#D9D9D9"
                     textColor="#5B5B5B"
                   />
                   <VoteCount
+                    key="Za"
                     label="Za"
                     count={yesNum}
                     bgColor="#4AD527"
                     textColor="#FFFFFF"
                   />
                   <VoteCount
+                    key="Suzdržano"
                     label="Suzdržano"
                     count={abstrainedNum}
                     bgColor="#377AFC"
                     textColor="#FFFFFF"
                   />
                   <VoteCount
+                    key="Protiv"
                     label="Protiv"
                     count={noNum}
                     bgColor="#EF4343"
