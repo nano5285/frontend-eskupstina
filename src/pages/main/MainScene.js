@@ -279,6 +279,7 @@ export default function MainScene(props) {
       }
       // console.log("activeSessionId: ", activeSessionId);
       const sessionData = await getSessionOrLatest(activeSessionId);
+      console.log('sessionData: ', sessionData);
       setCurrentSession(sessionData);
 
       const isSessionChanged = oldSessionId !== sessionId ? true : false;
