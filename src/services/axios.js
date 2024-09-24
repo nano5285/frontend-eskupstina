@@ -280,8 +280,9 @@ const resetVote = async (props) => {
 };
 
 export const getSessionOrLatest = async (sessionId) => {
+  console.log('sessionId(getSessionOrLatest): ', sessionId, typeof(sessionId));
   const query =
-    sessionId && sessionId !== "undefined" ? `?session_id=${sessionId}` : "";
+    sessionId && sessionId !== "undefined" && sessionId !== 'false' ? `?session_id=${sessionId}` : "";
   try {
     var result = await axios.get(`/api/get_session_or_latest/${query}`, {
       headers: {
@@ -293,6 +294,19 @@ export const getSessionOrLatest = async (sessionId) => {
     return error.response;
   }
 };
+export const getSessionsByYear = async () => {
+  try {
+    var result = await axios.get(`/api/sessions_by_year`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return result.data;
+  } catch (error) {
+    return error.response;
+  }
+};
+
 
 const getSessions = async (props) => {
   console.log(props, "prropsjkjk");

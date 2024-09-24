@@ -46,7 +46,7 @@ export default function MainScene(props) {
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [year, setYear] = useState("");
-  
+
   const [abstrainedNum, setAbstrainedNum] = useState(0);
   const [yesNum, setYesNum] = useState(0);
   const [noNum, setNoNum] = useState(0);
@@ -95,7 +95,6 @@ export default function MainScene(props) {
   // console.log('currentUserId:', currentUserId)
   // console.log('role: ', role)
 
-
   const initializeDefaultSession = async () => {
     const res = await getSessions();
 
@@ -112,11 +111,10 @@ export default function MainScene(props) {
       (agenda) => agenda.agenda_type === "daily_agenda"
     );
     setPreAgenda(preAgendas);
-    setDailyAgenda(dailyAgendas);    
+    setDailyAgenda(dailyAgendas);
 
     return currentSession;
-  }
-
+  };
 
   /**
    * WebSocket Event Handlers
@@ -132,8 +130,7 @@ export default function MainScene(props) {
           if (voteState !== 2) {
             if (item.vote_info) {
               const exists = JSON.parse(item?.vote_info)?.some(
-                (element) =>
-                  element?.user_id === currentUserId
+                (element) => element?.user_id === currentUserId
               );
               if (!exists) {
                 setOpen(true);
@@ -144,14 +141,13 @@ export default function MainScene(props) {
       });
     }
   };
-  
+
   // Handle vote start
   const handleVoteStart = (agendaId, agenda) => {
     setVotingAgenda(agenda);
     setOpen(true);
     setGetUpdate((prev) => !prev);
     setVoteClose(false);
-
   };
 
   // Handle vote update
@@ -159,7 +155,7 @@ export default function MainScene(props) {
     setVotingAgenda(agenda);
     setUpdateFlag((prev) => !prev);
 
-    // // take user to the agenda being voted 
+    // // take user to the agenda being voted
     // if(selectedIndexAgenda?._id !== agenda?._id) {
     //   setSelectedIndexAgenda(agenda);
     //   // setSelectedAgendaPdf(agenda?._id);
@@ -167,7 +163,6 @@ export default function MainScene(props) {
 
     // show vote counts for the selected agenda.
     updateVoteCounts(agenda?.vote_info);
-
   };
 
   // Handle vote close
@@ -189,7 +184,6 @@ export default function MainScene(props) {
   const handleUserDisconnected = () => {
     setConnected(false);
   };
-
 
   /**
    * useEffect Hook for Socket Event Listeners
@@ -216,9 +210,7 @@ export default function MainScene(props) {
     };
   }, []);
 
-
   useEffect(() => {
-
     updateVoteCounts(votingAgenda?.vote_info);
   }, [votingAgenda]);
 
@@ -230,7 +222,9 @@ export default function MainScene(props) {
     const fetchUsers = async () => {
       try {
         const resp = await getUser({ id: currentUserId });
-        const userData = resp?.data?.find((user) => user?._id === currentUserId);
+        const userData = resp?.data?.find(
+          (user) => user?._id === currentUserId
+        );
         if (userData?.role === "admin") {
           setAdmin(true);
         }
@@ -270,13 +264,12 @@ export default function MainScene(props) {
         }
 
         const res = await getAgenda2(selectedIndexAgenda?._id);
-        
+
         if (!isEqual(res?.data, selectedIndexAgenda)) {
           setSelectedIndexAgenda(res?.data);
         }
 
         updateVoteCounts(res?.data?.vote_info);
-
       } catch (error) {
         console.error("Error fetching agenda by ID:", error);
       }
@@ -286,12 +279,9 @@ export default function MainScene(props) {
 
   useEffect(() => {
     if (year) {
-      getAgendasAndUsers({"year":year});
+      getAgendasAndUsers({ year: year });
     }
   }, [getUpdate, isReset, newAgenda, year]);
-
-
-
 
   const getAgendasAndUsers = async (year) => {
     const res = await getSessions(year);
@@ -337,9 +327,7 @@ export default function MainScene(props) {
     }
 
     updateVoteCounts(updatedAgenda?.vote_info);
-
   };
-
 
   /**
    * Update Vote Counts
@@ -387,8 +375,6 @@ export default function MainScene(props) {
       setNotVotedNum(yes + no + ab);
     }
   };
-
-
 
   // const checkAgendaState = () => {
   //   return selectedIndexAgenda?.vote_state;
@@ -466,9 +452,7 @@ export default function MainScene(props) {
   }
   const Year = ["2024", "2023", "2022"];
 
-
   const changeVoteView = async (decision, votedAgendaId) => {
-
     setOpen(false);
 
     if (role === "admin") {
@@ -495,10 +479,10 @@ export default function MainScene(props) {
   };
 
   const sendVoteStart = async () => {
-    if(!selectedIndexAgenda._id) {
+    if (!selectedIndexAgenda._id) {
       toast("Select an agenda to start voting for");
       return;
-    } 
+    }
 
     if (selectedIndexAgenda?.vote_state === 2) {
       toast("Voting already closed!");
@@ -516,7 +500,7 @@ export default function MainScene(props) {
   const sendVoteClose = async () => {
     await closeVote(startedVote);
     socket.emit("vote_update", "message", selectedIndexAgenda._id);
-    
+
     socket.emit("vote_close", selectedIndexAgenda._id);
     setAdminOpen(false);
   };
@@ -529,7 +513,6 @@ export default function MainScene(props) {
     setIsReset(!isReset);
     socket.emit("vote_reset", null);
   };
-
 
   return (
     <>
@@ -700,9 +683,9 @@ export default function MainScene(props) {
                   </div>
                 )} */}
                 <div>
-                  <Menu placement="bottom-start" >
+                  <Menu placement="bottom-start">
                     <div style={{ display: "flex", alignItems: "center" }}>
-                      <MenuHandler  >
+                      <MenuHandler>
                         <FontAwesomeIcon
                           icon={faBars}
                           className="cursor-pointer "
@@ -727,112 +710,109 @@ export default function MainScene(props) {
                           {item}
                         </MenuItem>
                       ))} */}
- <Menu
-          placement="right-start"
-          open={openMenuOne}
-          handler={setOpenMenuOne}
-          allowHover
-
-          offset={15}
-        >
-          <MenuHandler className="flex items-center justify-between">
-            <MenuItem onMouseEnter={()=>setYear("2024")}>
-              2024
-              <ChevronUpIcon
-                strokeWidth={2.5}
-                className={`h-3.5 w-3.5 transition-transform ${
-                  openMenuOne ? "rotate-90" : ""
-                }`}
-              />
-            </MenuItem>
-          </MenuHandler>
-          <MenuList>
-            {sessions.length>0 ?sessions?.map((item) => (
-                    <MenuItem
-                      onClick={() => {
-                        sessionChange(item);
-                      }}
-                    >
-                      {item.name}
-                    </MenuItem>
-                  )):<MenuItem
-                      
-                    >
-                       No Data
-                    </MenuItem>}
-          </MenuList>
-        </Menu>
-<Menu
-          placement="right-start"
-          open={openMenuTwo}
-          handler={setOpenMenuTwo}
-          allowHover
-
-          offset={15}
-        >
-          <MenuHandler className="flex items-center justify-between">
-            <MenuItem onMouseEnter={()=>setYear("2023")}>
-              2023
-              <ChevronUpIcon
-                strokeWidth={2.5}
-                className={`h-3.5 w-3.5 transition-transform ${
-                  openMenuTwo ? "rotate-90" : ""
-                }`}
-              />
-            </MenuItem>
-          </MenuHandler>
-          <MenuList>
-            {sessions.length>0 ?sessions?.map((item) => (
-                    <MenuItem
-                      onClick={() => {
-                        sessionChange(item);
-                      }}
-                    >
-                      {item.name}
-                    </MenuItem>
-                  )):<MenuItem
-                      
-                    >
-                       No Data
-                    </MenuItem>}
-          </MenuList>
-        </Menu>
-<Menu
-          placement="right-start"
-          open={openMenuThree}
-          handler={setOpenMenuThree}
-          allowHover
-
-          offset={15}
-        >
-          <MenuHandler className="flex items-center justify-between">
-            <MenuItem onMouseEnter={()=>setYear("2022")}>
-              2022
-              <ChevronUpIcon
-                strokeWidth={2.5}
-                className={`h-3.5 w-3.5 transition-transform ${
-                  openMenuThree ? "rotate-90" : ""
-                }`}
-              />
-            </MenuItem>
-          </MenuHandler>
-          <MenuList>
-            {sessions.length>0 ?sessions?.map((item) => (
-                    <MenuItem
-                      onClick={() => {
-                        sessionChange(item);
-                      }}
-                    >
-                      {item.name}
-                    </MenuItem>
-                  )):<MenuItem
-                     
-                    >
-                     No Data
-                    </MenuItem>}
-          </MenuList>
-        </Menu>
-{/* {sessions?.length>0 && <div
+                      <Menu
+                        placement="right-start"
+                        open={openMenuOne}
+                        handler={setOpenMenuOne}
+                        allowHover
+                        offset={15}
+                      >
+                        <MenuHandler className="flex items-center justify-between">
+                          <MenuItem onMouseEnter={() => setYear("2024")}>
+                            2024
+                            <ChevronUpIcon
+                              strokeWidth={2.5}
+                              className={`h-3.5 w-3.5 transition-transform ${
+                                openMenuOne ? "rotate-90" : ""
+                              }`}
+                            />
+                          </MenuItem>
+                        </MenuHandler>
+                        <MenuList>
+                          {sessions.length > 0 ? (
+                            sessions?.map((item) => (
+                              <MenuItem
+                                onClick={() => {
+                                  sessionChange(item);
+                                }}
+                              >
+                                {item.name}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem>No Data</MenuItem>
+                          )}
+                        </MenuList>
+                      </Menu>
+                      <Menu
+                        placement="right-start"
+                        open={openMenuTwo}
+                        handler={setOpenMenuTwo}
+                        allowHover
+                        offset={15}
+                      >
+                        <MenuHandler className="flex items-center justify-between">
+                          <MenuItem onMouseEnter={() => setYear("2023")}>
+                            2023
+                            <ChevronUpIcon
+                              strokeWidth={2.5}
+                              className={`h-3.5 w-3.5 transition-transform ${
+                                openMenuTwo ? "rotate-90" : ""
+                              }`}
+                            />
+                          </MenuItem>
+                        </MenuHandler>
+                        <MenuList>
+                          {sessions.length > 0 ? (
+                            sessions?.map((item) => (
+                              <MenuItem
+                                onClick={() => {
+                                  sessionChange(item);
+                                }}
+                              >
+                                {item.name}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem>No Data</MenuItem>
+                          )}
+                        </MenuList>
+                      </Menu>
+                      <Menu
+                        placement="right-start"
+                        open={openMenuThree}
+                        handler={setOpenMenuThree}
+                        allowHover
+                        offset={15}
+                      >
+                        <MenuHandler className="flex items-center justify-between">
+                          <MenuItem onMouseEnter={() => setYear("2022")}>
+                            2022
+                            <ChevronUpIcon
+                              strokeWidth={2.5}
+                              className={`h-3.5 w-3.5 transition-transform ${
+                                openMenuThree ? "rotate-90" : ""
+                              }`}
+                            />
+                          </MenuItem>
+                        </MenuHandler>
+                        <MenuList>
+                          {sessions.length > 0 ? (
+                            sessions?.map((item) => (
+                              <MenuItem
+                                onClick={() => {
+                                  sessionChange(item);
+                                }}
+                              >
+                                {item.name}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem>No Data</MenuItem>
+                          )}
+                        </MenuList>
+                      </Menu>
+                      {/* {sessions?.length>0 && <div
                         style={{
                           borderTop:
                             "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
@@ -874,9 +854,9 @@ export default function MainScene(props) {
                   </h1> */}
                 </div>
                 <div
-                  // style={
-                  //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                  // }
+                // style={
+                //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                // }
                 >
                   <div>
                     <div
@@ -887,8 +867,8 @@ export default function MainScene(props) {
                       }}
                     ></div>
                   </div>
-                  
-{preAgenda?.length && (
+
+                  {preAgenda?.length && (
                     <div>
                       <div> Pre Agenda</div>
                       <div
@@ -918,9 +898,9 @@ export default function MainScene(props) {
                   })}
                 </div>
                 <div
-                  // style={
-                  //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
-                  // }
+                // style={
+                //   showLogout ? { marginTop: "80px" } : { marginTop: "0px" }
+                // }
                 >
                   {dailyAgenda?.length && (
                     <div>
@@ -985,17 +965,37 @@ export default function MainScene(props) {
                 </button>
               </div>
             </div>
-            
+
             {/* Vote Counts and User List */}
             {isFullScreen && (
               <div className="relative flex flex-col items-center basis-1/4  border-[2px] border-[#ccc] rounded-[8px] bg-[#fff]  p-[20px]">
-              {/* Vote Counts */}
-              <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
-                <VoteCount label="Ukupno" count={notVotedNum} bgColor="#D9D9D9" textColor="#5B5B5B" />
-                <VoteCount label="Za" count={yesNum} bgColor="#4AD527" textColor="#FFFFFF" />
-                <VoteCount label="Suzdržano" count={abstrainedNum} bgColor="#377AFC" textColor="#FFFFFF" />
-                <VoteCount label="Protiv" count={noNum} bgColor="#EF4343" textColor="#FFFFFF" />
-              </div>
+                {/* Vote Counts */}
+                <div className="flex flex-row w-full justify-between bg-[#f5f5f5] rounded-[20px] p-[10px]">
+                  <VoteCount
+                    label="Ukupno"
+                    count={notVotedNum}
+                    bgColor="#D9D9D9"
+                    textColor="#5B5B5B"
+                  />
+                  <VoteCount
+                    label="Za"
+                    count={yesNum}
+                    bgColor="#4AD527"
+                    textColor="#FFFFFF"
+                  />
+                  <VoteCount
+                    label="Suzdržano"
+                    count={abstrainedNum}
+                    bgColor="#377AFC"
+                    textColor="#FFFFFF"
+                  />
+                  <VoteCount
+                    label="Protiv"
+                    count={noNum}
+                    bgColor="#EF4343"
+                    textColor="#FFFFFF"
+                  />
+                </div>
 
                 {/* User List */}
                 <div className="w-full overflow-y-auto">
@@ -1069,7 +1069,6 @@ export default function MainScene(props) {
     </>
   );
 }
-
 
 /**
  * VoteCount Component
