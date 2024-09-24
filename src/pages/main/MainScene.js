@@ -14,6 +14,7 @@ import {
   liveVotes,
   recordLiveVote,
   getSessionOrLatest,
+  getSessionsByYear,
 } from "../../services/axios";
 import {
   Button,
@@ -48,6 +49,7 @@ export default function MainScene(props) {
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [sessionYears, setSessionYears] = useState({});
   const [year, setYear] = useState("");
 
   const [abstrainedNum, setAbstrainedNum] = useState(0);
@@ -81,6 +83,7 @@ export default function MainScene(props) {
 
   const [getUpdate, setGetUpdate] = useState(false);
   const [sessions, setSessions] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
   const [currentSession, setCurrentSession] = useState({
     _id: "",
     name: "",
@@ -102,22 +105,25 @@ export default function MainScene(props) {
   const [agendaBeingVoted, setAgendaBeingVoted] = useState(null);
   const [canStartNewVoting, setCanStartNewVoting] = useState(true);
 
-
   // Refs to hold the latest state values
   const selectedIndexAgendaRef = useRef(selectedIndexAgenda);
+  const agendaBeingVotedRef = useRef(agendaBeingVoted);
 
   // Update refs when states change
   useEffect(() => {
-    console.log('useEffect: update selectedIndexAgendaRef...');
+    console.log("useEffect: update selectedIndexAgendaRef...");
     selectedIndexAgendaRef.current = selectedIndexAgenda;
   }, [selectedIndexAgenda]);
+  useEffect(() => {
+    console.log("useEffect: update agendaBeingVotedRef...");
+    agendaBeingVotedRef.current = agendaBeingVoted;
+  }, [agendaBeingVoted]);
 
 
   const initializeDefaultSession = async () => {
     console.log("useEffect: initializeDefaultSession...");
-    const res = await getSessionOrLatest(getCookie("currentSessionId"));
-    const currentSessionData = res;
-    setYear(new Date(currentSessionData.start_time).getFullYear().toString());
+    const sessionYears = await getSessionsByYear();
+    setSessionYears(sessionYears.years);
   };
 
   /**
@@ -149,7 +155,6 @@ export default function MainScene(props) {
 
   // Handle live voting results
   const handleLiveVotingResults = (currentAgendaId, currentAgendaVotes) => {
-    
     const selectedAgenda = selectedIndexAgendaRef.current;
     console.log(
       "selectedIndexAgenda(handleLiveVotingResults): ",
@@ -163,18 +168,16 @@ export default function MainScene(props) {
 
     // updateVoteCounts(currentAgendaVotes || []);
 
-    if (
-      selectedAgenda._id &&
-      selectedAgenda._id === currentAgendaId
-    ) {
+    if (selectedAgenda._id && selectedAgenda._id === currentAgendaId) {
       updateVoteCounts(currentAgendaVotes || []);
     }
   };
 
   // Handle vote start
-  const handleVoteStart = (agendaInfo) => {
+  const handleVoteStart = (agendaInfo, activeSessionId) => {
+    // take user to the session and agenda where voting is on
     setAgendaBeingVoted(agendaInfo);
-
+    setSessionId(activeSessionId);
     const selectedAgenda = selectedIndexAgendaRef.current;
     // take user to the agenda being voted
     console.log("selectedIndexAgenda: ", selectedAgenda);
@@ -184,6 +187,7 @@ export default function MainScene(props) {
     }
 
     setOpen(true);
+
     // setGetUpdate((prev) => !prev);
     // setVoteClose(false);
   };
@@ -261,11 +265,62 @@ export default function MainScene(props) {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect: updates with year: ", year);
-    if (year) {
-      getAgendasAndUsers({ year: year });
-    }
-  }, [getUpdate, year]);
+    console.log("useEffect: updates session");
+
+    const getAgendasAndUsers = async () => {
+      const oldSessionId = getCookie("currentSessionId");
+      // console.log("sessionId: ", sessionId);
+      // console.log("oldSessionId: ", oldSessionId);
+
+      // if no session id provided, we should load the existing session
+      let activeSessionId = sessionId;
+      if (!sessionId && oldSessionId !== "undefined") {
+        activeSessionId = oldSessionId;
+      }
+      // console.log("activeSessionId: ", activeSessionId);
+      const sessionData = await getSessionOrLatest(activeSessionId);
+      setCurrentSession(sessionData);
+
+      const isSessionChanged = oldSessionId !== sessionId ? true : false;
+      // console.log('isSessionChanged: ', isSessionChanged, oldSessionId, sessionId);
+      setCookie("currentSessionId", activeSessionId, 300);
+
+      const agendas = sessionData?.agendas || [];
+      // Separate agendas into preAgendas and dailyAgendas
+      const preAgendas = agendas?.filter(
+        (agenda) => agenda.agenda_type === "pre_agenda"
+      );
+      const dailyAgendas = agendas?.filter(
+        (agenda) => agenda.agenda_type === "daily_agenda"
+      );
+      // Update preAgenda and dailyAgenda states
+      setPreAgenda(preAgendas);
+      setDailyAgenda(dailyAgendas);
+
+      let updatedAgenda;
+      const selectedAgenda = selectedIndexAgendaRef.current;
+      const votedAgenda = agendaBeingVotedRef.current;
+      // Select default selectedIndexAgenda if not already set
+      if (isSessionChanged && !votedAgenda && preAgendas.length > 0) {
+        setSelectedIndexAgenda(preAgendas[0]);
+        setSelectedAgendaPdf(preAgendas[0]._id);
+        updatedAgenda = preAgendas[0];
+      } else {
+        // Find selectedIndexAgenda in the updated agendas list
+        updatedAgenda = agendas?.find(
+          (agenda) => agenda?._id === selectedAgenda._id
+        );
+        setSelectedIndexAgenda(updatedAgenda || {});
+        setSelectedAgendaPdf(updatedAgenda?._id || "");
+      }
+
+      updateVoteCounts(updatedAgenda?.votes);
+
+      setSessionId(activeSessionId);
+    };
+
+    getAgendasAndUsers();
+  }, [getUpdate, sessionId]);
 
   /**
    * Fetch Agenda by ID
@@ -352,52 +407,6 @@ export default function MainScene(props) {
     fetchUsers();
   }, [currentUserId]);
 
-  const getAgendasAndUsers = async (year) => {
-    const res = await getSessions(year);
-    setSessions(res?.data);
-    const currentSessionId = getCookie("currentSessionId")
-      ? getCookie("currentSessionId")
-      : res?.data[0]._id;
-
-    const currentSession = res?.data?.find(
-      (item) => item._id == currentSessionId
-    );
-
-    setCurrentSession(currentSession);
-    setCookie("currentSessionId", currentSessionId, 30);
-
-    const agendas = currentSession?.agendas || [];
-    // Separate agendas into preAgendas and dailyAgendas
-    const preAgendas = agendas?.filter(
-      (agenda) => agenda.agenda_type === "pre_agenda"
-    );
-    const dailyAgendas = agendas?.filter(
-      (agenda) => agenda.agenda_type === "daily_agenda"
-    );
-    // Update preAgenda and dailyAgenda states
-    setPreAgenda(preAgendas);
-    setDailyAgenda(dailyAgendas);
-    let updatedAgenda;
-    // Select default selectedIndexAgenda if not already set
-    if (
-      Object.keys(selectedIndexAgenda).length === 0 &&
-      preAgendas.length > 0
-    ) {
-      setSelectedIndexAgenda(preAgendas[0]);
-      setSelectedAgendaPdf(preAgendas[0]._id);
-      updatedAgenda = preAgendas[0];
-    } else {
-      // Find selectedIndexAgenda in the updated agendas list
-      updatedAgenda = agendas?.find(
-        (agenda) => agenda?._id === selectedIndexAgenda._id
-      );
-      setSelectedIndexAgenda(updatedAgenda || {});
-      setSelectedAgendaPdf(updatedAgenda?._id || "");
-    }
-
-    updateVoteCounts(updatedAgenda?.votes);
-  };
-
   /**
    * Update Vote Counts
    * Parses the vote information and updates the vote counts.
@@ -454,9 +463,10 @@ export default function MainScene(props) {
   };
   const { logout } = useAuth();
   const handleLogout = () => {
-    navigate("/");
+    deleteCookie("currentSessionId");
     logout();
     localStorage.clear();
+    navigate("/");
   };
 
   const toggleLogout = () => {
@@ -473,20 +483,8 @@ export default function MainScene(props) {
     setShowModal(!showModal); // Show modal when plus icon is clicked
   };
 
-  const sessionChange = (item) => {
-    setCurrentSession(item);
-    setCookie("currentSessionId", item._id, 30);
-
-    const preAgendas = item?.agendas.filter(
-      (agenda) => agenda.agenda_type === "pre_agenda"
-    );
-    const dailyAgendas = item?.agendas.filter(
-      (agenda) => agenda.agenda_type === "daily_agenda"
-    );
-
-    setPreAgenda(preAgendas);
-    setDailyAgenda(dailyAgendas);
-    setShowLogout(!showLogout);
+  const sessionChange = async ({ _id, name }) => {
+    setSessionId(_id);
   };
 
   const setCookie = (name, value, minutesToExpire) => {
@@ -511,6 +509,13 @@ export default function MainScene(props) {
     }
     return false;
   }
+
+  // Function to delete a cookie by setting its expiration date in the past
+  function deleteCookie(name) {
+    document.cookie =
+      name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+
   const Year = ["2024", "2023", "2022"];
 
   const changeVoteView = async (decision, votedAgendaId) => {
@@ -533,23 +538,23 @@ export default function MainScene(props) {
       "🚀 ~ file: MainScene.js:61 ~ changeVoteView ~ voteData:",
       voteData
     );
-    console.log();
+
     // pull latest live votes
     const res = await liveVotes({
       agenda_id: votedAgendaId,
     });
-    console.log("currentVotes: ", res);
+    // console.log("currentVotes: ", res);
     // only if user has not voted already, it should send its vote
 
     const existingVoteIndex = res.votes.findIndex((vote) => {
-      console.log(
-        "Have I already voted?",
-        vote.user_id,
-        typeof vote.user_id,
-        currentUserId,
-        typeof currentUserId,
-        vote.user_id === currentUserId
-      );
+      // console.log(
+      //   "Have I already voted?",
+      //   vote.user_id,
+      //   typeof vote.user_id,
+      //   currentUserId,
+      //   typeof currentUserId,
+      //   vote.user_id === currentUserId
+      // );
       return vote.user_id === currentUserId;
     });
 
@@ -587,7 +592,7 @@ export default function MainScene(props) {
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_start", selectedIndexAgenda);
+    socket.emit("vote_start", selectedIndexAgenda, sessionId);
 
     // admin cannot start a new voting unless the current one is fully saved
     setCanStartNewVoting(false);
@@ -797,133 +802,43 @@ export default function MainScene(props) {
                       </MenuHandler>
                     </div>
                     <MenuList>
-                      {/* {Year?.map((item) => (
-                        <MenuItem
-                          onClick={() => {
-                            setYear(item);
-                          }}
+                      {Object.keys(sessionYears).map((year) => (
+                        <Menu
+                          key={year}
+                          placement="right-start"
+                          open={openMenuOne}
+                          handler={setOpenMenuOne}
+                          allowHover
+                          offset={15}
                         >
-                          {item}
-                        </MenuItem>
-                      ))} */}
-                      <Menu
-                        placement="right-start"
-                        open={openMenuOne}
-                        handler={setOpenMenuOne}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2024")}>
-                            2024
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuOne ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      <Menu
-                        placement="right-start"
-                        open={openMenuTwo}
-                        handler={setOpenMenuTwo}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2023")}>
-                            2023
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuTwo ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      <Menu
-                        placement="right-start"
-                        open={openMenuThree}
-                        handler={setOpenMenuThree}
-                        allowHover
-                        offset={15}
-                      >
-                        <MenuHandler className="flex items-center justify-between">
-                          <MenuItem onMouseEnter={() => setYear("2022")}>
-                            2022
-                            <ChevronUpIcon
-                              strokeWidth={2.5}
-                              className={`h-3.5 w-3.5 transition-transform ${
-                                openMenuThree ? "rotate-90" : ""
-                              }`}
-                            />
-                          </MenuItem>
-                        </MenuHandler>
-                        <MenuList>
-                          {sessions.length > 0 ? (
-                            sessions?.map((item) => (
-                              <MenuItem
-                                onClick={() => {
-                                  sessionChange(item);
-                                }}
-                              >
-                                {item.name}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem>No Data</MenuItem>
-                          )}
-                        </MenuList>
-                      </Menu>
-                      {/* {sessions?.length>0 && <div
-                        style={{
-                          borderTop:
-                            "3px solid rgb(213 213 213 / var(--tw-bg-opacity))",
-                          marginBottom: "5px",fontWeight:"bold"
-                        }}
-                      >Sessions</div>}
-{sessions?.map((item) => (
-                    <MenuItem
-                      onClick={() => {
-                        sessionChange(item);
-                      }}
-                    >
-                      {item.name}
-                    </MenuItem>
-                  ))} */}
+                          <MenuHandler className="flex items-center justify-between">
+                            <MenuItem onClick={() => setYear(year)}>
+                              {year}
+                              <ChevronUpIcon
+                                strokeWidth={2.5}
+                                className={`h-3.5 w-3.5 transition-transform ${
+                                  openMenuOne ? "rotate-90" : ""
+                                }`}
+                              />
+                            </MenuItem>
+                          </MenuHandler>
+                          <MenuList>
+                            {sessionYears[year].length > 0 ? (
+                              sessionYears[year]?.map((session) => (
+                                <MenuItem
+                                  onClick={() => {
+                                    sessionChange(session);
+                                  }}
+                                >
+                                  {session.name}
+                                </MenuItem>
+                              ))
+                            ) : (
+                              <MenuItem>No Data</MenuItem>
+                            )}
+                          </MenuList>
+                        </Menu>
+                      ))}
                       <div
                         style={{
                           borderTop:
