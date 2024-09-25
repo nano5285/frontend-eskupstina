@@ -139,24 +139,21 @@ export default function MainScene(props) {
    */
 
   // Check voting permission
-  const handleCheckUserVotingPermission = async (
+  const checkUserVotingPermission = async (
     currentSessionId,
     currentAgendaId,
     currentAgendaVotes
   ) => {
     const sessionData = await getSessionOrLatest();
-    console.log('ON CONNECTTION...', sessionData);
+    console.log('ON CONNECTION...', sessionData);
     console.log('currentAgendaId: ', currentAgendaId);
-    const activeSession = currentSessionRef.current;
-    console.log('CURRENT SESSION: ', activeSession);
-    console.log('sessionId', sessionId);
+    console.log('sessionId', currentSessionId);
     sessionData.agendas.forEach((agenda) => {
       if (agenda?._id === currentAgendaId) {
         console.log('AGENDA MATCHING...', agenda?._id);
         const voteState = agenda.vote_state;
         if (voteState !== 2) {
           console.log('VOTING ON...');
-
           setAgendaBeingVoted(agenda);
           setSessionId(sessionData._id);
           const selectedAgenda = selectedIndexAgendaRef.current;
@@ -165,14 +162,6 @@ export default function MainScene(props) {
           }
           setOpen(true);
 
-          // if (currentAgendaVotes.length !== 0) {
-          //   const exists = currentAgendaVotes.some(
-          //     (element) => element?.user_id === currentUserId
-          //   );
-          //   if (!exists) {
-          //     setOpen(true);
-          //   }
-          // }
         }
       }
     });
@@ -262,12 +251,14 @@ export default function MainScene(props) {
    */
   useEffect(() => {
     initializeDefaultSession();
+    socket.emit('i_am_in', null, (sessionId, currAgenda, votes) => {
+      console.log('response: ', sessionId, currAgenda, votes);
+      checkUserVotingPermission(sessionId, currAgenda, votes);
+    });
     // Attach event listeners
     socket.on("user_disconnected", handleUserDisconnected);
     socket.on("live_voting_results", handleLiveVotingResults);
-    socket.on("check_user_voting_permission", handleCheckUserVotingPermission);
     socket.on("vote_start", handleVoteStart);
-    // socket.on("vote_update", handleVoteUpdate);
     socket.on("vote_close", handleVoteClose);
     socket.on("vote_reset", handleVoteReset);
     socket.on("voting_saved", handleVotingSaved);
@@ -276,13 +267,8 @@ export default function MainScene(props) {
     // Cleanup function to remove event listeners when component unmounts
     return () => {
       socket.off("user_disconnected", handleUserDisconnected);
-      socket.off(
-        "check_user_voting_permission",
-        handleCheckUserVotingPermission
-      );
       socket.off("live_voting_results", handleLiveVotingResults);
       socket.off("vote_start", handleVoteStart);
-      // socket.off("vote_update", handleVoteUpdate);
       socket.off("vote_close", handleVoteClose);
       socket.off("vote_reset", handleVoteReset);
       socket.off("voting_saved", handleVotingSaved);
