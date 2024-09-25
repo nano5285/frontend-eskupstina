@@ -108,6 +108,9 @@ export default function MainScene(props) {
   // Refs to hold the latest state values
   const selectedIndexAgendaRef = useRef(selectedIndexAgenda);
   const agendaBeingVotedRef = useRef(agendaBeingVoted);
+  const currentSessionRef = useRef(currentSession);
+
+
 
   // Update refs when states change
   useEffect(() => {
@@ -118,6 +121,10 @@ export default function MainScene(props) {
     console.log("useEffect: update agendaBeingVotedRef...");
     agendaBeingVotedRef.current = agendaBeingVoted;
   }, [agendaBeingVoted]);
+  useEffect(() => {
+    console.log("useEffect: update currentSessionRef...");
+    currentSessionRef.current = currentSession;
+  }, [currentSession]);
 
 
   const initializeDefaultSession = async () => {
@@ -132,22 +139,40 @@ export default function MainScene(props) {
    */
 
   // Check voting permission
-  const handleCheckUserVotingPermission = (
+  const handleCheckUserVotingPermission = async (
+    currentSessionId,
     currentAgendaId,
     currentAgendaVotes
   ) => {
-    currentSession?.agendas.forEach((agenda) => {
+    const sessionData = await getSessionOrLatest();
+    console.log('ON CONNECTTION...', sessionData);
+    console.log('currentAgendaId: ', currentAgendaId);
+    const activeSession = currentSessionRef.current;
+    console.log('CURRENT SESSION: ', activeSession);
+    console.log('sessionId', sessionId);
+    sessionData.agendas.forEach((agenda) => {
       if (agenda?._id === currentAgendaId) {
+        console.log('AGENDA MATCHING...', agenda?._id);
         const voteState = agenda.vote_state;
         if (voteState !== 2) {
-          if (currentAgendaVotes.length !== 0) {
-            const exists = currentAgendaVotes.some(
-              (element) => element?.user_id === currentUserId
-            );
-            if (!exists) {
-              setOpen(true);
-            }
+          console.log('VOTING ON...');
+
+          setAgendaBeingVoted(agenda);
+          setSessionId(sessionData._id);
+          const selectedAgenda = selectedIndexAgendaRef.current;
+          if (selectedAgenda?._id !== agenda?._id) {
+            setSelectedIndexAgenda({ _id: agenda._id });
           }
+          setOpen(true);
+
+          // if (currentAgendaVotes.length !== 0) {
+          //   const exists = currentAgendaVotes.some(
+          //     (element) => element?.user_id === currentUserId
+          //   );
+          //   if (!exists) {
+          //     setOpen(true);
+          //   }
+          // }
         }
       }
     });
@@ -171,6 +196,7 @@ export default function MainScene(props) {
     if (selectedAgenda._id && selectedAgenda._id === currentAgendaId) {
       updateVoteCounts(currentAgendaVotes || []);
     }
+
   };
 
   // Handle vote start
@@ -238,8 +264,8 @@ export default function MainScene(props) {
     initializeDefaultSession();
     // Attach event listeners
     socket.on("user_disconnected", handleUserDisconnected);
-    socket.on("check_user_voting_permission", handleCheckUserVotingPermission);
     socket.on("live_voting_results", handleLiveVotingResults);
+    socket.on("check_user_voting_permission", handleCheckUserVotingPermission);
     socket.on("vote_start", handleVoteStart);
     // socket.on("vote_update", handleVoteUpdate);
     socket.on("vote_close", handleVoteClose);
@@ -321,7 +347,7 @@ export default function MainScene(props) {
     };
 
     getAgendasAndUsers();
-  }, [getUpdate, sessionId]);
+  }, [getUpdate, sessionId, connected]);
 
   /**
    * Fetch Agenda by ID
