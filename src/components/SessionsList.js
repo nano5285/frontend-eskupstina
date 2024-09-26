@@ -24,7 +24,7 @@ export default function SessionsList({
 }) {
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(100);
 
   useEffect(() => {
     const pageNumber = Math.ceil(sessions.length / 10);
@@ -44,7 +44,8 @@ export default function SessionsList({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const currentItems = sessions.slice(indexOfFirstItem, indexOfLastItem);
-  // console.log(currentItems,"currentItems")
+  // const currentItems = sessions;
+  console.log(currentItems,"currentItems")
   const TABLE_HEAD = ["Sr. No.", "Name", "View", "Action"];
   const handleAgendaList = (type, agendas, id, item) => {
     setAgendas(agendas);
@@ -120,7 +121,7 @@ export default function SessionsList({
                         handleAgendaList(
                           "Agenda",
                           item?.agendas,
-                          item?.id,
+                          item?._id,
                           item
                         )
                       }

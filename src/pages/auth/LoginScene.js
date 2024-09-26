@@ -38,6 +38,7 @@ export default function LoginScene() {
           </div>
           <div className="w-72 mt-[20px]">
             <Input
+              data-test-id="email"
               color="blue"
               label="Email"
               onChange={(e) => {
@@ -48,6 +49,7 @@ export default function LoginScene() {
           </div>
           <div className="w-72 mt-[20px]">
             <Input
+              data-test-id="password"
               color="blue"
               type="password"
               label="Password"
@@ -60,7 +62,7 @@ export default function LoginScene() {
           {error && <div className="text-red-500 mt-2">{error}</div>}{" "}
           {/* Display error message */}
           <div className="w-72 mt-[40px]">
-            <Button className="w-full bg-[blue]" onClick={toMainScene}>
+            <Button data-test-id="login" className="w-full bg-[blue]" onClick={toMainScene}>
               Prijava
             </Button>
           </div>

@@ -39,7 +39,7 @@ export default function AgendaList({
   openUpdateOrder,
 }) {
   const TABLE_HEAD = [
-    "Sr.No.",
+    "Position",
     "Name of agenda",
     "Description (optional)",
     "Type",
@@ -70,7 +70,9 @@ export default function AgendaList({
   const indexOfLastItem = page * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const currentItems = agendas.slice(indexOfFirstItem, indexOfLastItem);
+  // const currentItems = agendas.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = agendas;
+  console.log('currentItems: ', currentItems);
   // console.log(page, "page");
   const TABS = [
     {
@@ -212,7 +214,7 @@ export default function AgendaList({
                         color="blue-gray"
                         className="font-bold"
                       >
-                        {index + 1}
+                        {item.position}
                       </Typography>
                     </div>
                   </td>
@@ -305,7 +307,9 @@ export default function AgendaList({
           </tbody>
         </table>
       </CardBody>
-      <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+
+      
+      {/* <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
         <Button
           variant="outlined"
           size="sm"
@@ -332,7 +336,7 @@ export default function AgendaList({
         >
           Next
         </Button>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

@@ -55,6 +55,7 @@ export const Admin = () => {
     try {
       const res = await getSessions();
       setSessions(res.data);
+      return res.data;
     } catch (error) {
       console.error("Error fetching sessions:", error);
     }
@@ -66,6 +67,14 @@ export const Admin = () => {
     try {
       const res = await getAgendas(sessionId, type, text);
       setAgendas(res.data);
+      const activeSessionIndex = sessions.findIndex(
+        (session) => session._id === sessionId
+      );
+      if (activeSessionIndex !== -1) {
+       setSessions((prev) => {
+        return prev[activeSessionIndex].agendas = res.data;  
+       })
+      }      
     } catch (error) {
       console.error("Error fetching sessions:", error);
     }
@@ -78,7 +87,17 @@ export const Admin = () => {
         const res = await deleteAgendaAPI(agendaId);
         if (res.status == 1) {
           toast("Brisanje agende upešno");
-          fetchSessions();
+          const updatedSessionsData = await fetchSessions();
+          const activeSessionIndex = updatedSessionsData.findIndex(
+            (session) => session._id === sessionId
+          );
+          console.log("sessionId ", sessionId);
+          console.log("activeSessionIndex: ", activeSessionIndex);
+
+          if (activeSessionIndex !== -1) {
+            setAgendas(updatedSessionsData[activeSessionIndex].agendas);
+          }
+          // fetchAgendas();
         } else {
           toast.error("Brisanje agende neupešno");
         }
@@ -115,6 +134,7 @@ export const Admin = () => {
   const handleInputChange = (event) => {
     const { name, value, files } = event.target;
 
+    // console.log('inputchange:', name, value, files);
     setFormData((prevState) => ({
       ...prevState,
       [name]: files ? files[0] : value,
@@ -132,6 +152,7 @@ export const Admin = () => {
     const form = document.getElementById("agendaForm");
     if (form.checkValidity()) {
       try {
+        // console.log('FormData: ', formData, sessionId);
         const result = await createAgenda(formData, sessionId);
         toast("Uspešno kreirana agenda");
         setFormData({
@@ -339,8 +360,12 @@ export const Admin = () => {
       <AdminNavigation />
       <div className="admin">
         <p className="heading">
-        { active !== "list" ? <span>{sessionName} </span> : <span> Admin panel </span> }
-          </p>
+          {active !== "list" ? (
+            <span>{sessionName} </span>
+          ) : (
+            <span> Admin panel </span>
+          )}
+        </p>
         <div className="admin-content mt-10">
           <div className=" flex justify-between">
             <Button
