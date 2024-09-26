@@ -13,7 +13,7 @@ export default function AgendaDialog(props) {
     isFrom,
     fromSession,
   } = props;
-  console.log(fromSession, "cheeck");
+  // console.log(fromSession, "cheeck");
   return (
     <Transition.Root show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={cancelAgenda}>

@@ -228,6 +228,7 @@ const closeVote = async (props) => {
 
 const createAgenda = async (props, session) => {
   try {
+    console.log('createAgenda: ', props, session);
     const formData = new FormData();
     formData.append("title", props.title);
     formData.append("description", props.description);
@@ -235,11 +236,7 @@ const createAgenda = async (props, session) => {
     formData.append("agenda_type", props.agenda_type);
     formData.append("session", session);
     formData.append("position", props.position);
-    const result = await axios.post("/api/agenda", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const result = await axios.post("/api/agenda", formData);
     return result.data;
   } catch (error) {
     return error.response;
@@ -248,6 +245,7 @@ const createAgenda = async (props, session) => {
 
 const updateAgenda = async (props, id, session) => {
   try {
+    console.log('createAgenda: ', props, session);
     const formData = new FormData();
     formData.append("title", props.title);
     formData.append("description", props.description);

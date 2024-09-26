@@ -9,6 +9,7 @@ export default function VoteAlert(props) {
   return (
     <div>
       <Dialog
+        data-test-id="voting-modal"
         open={open}
         dismiss={{ onOutsideClick: false, onEscapeKey: false }}
       >
@@ -17,16 +18,27 @@ export default function VoteAlert(props) {
         </DialogHeader>
         <DialogFooter className="grid grid-cols-3 gap-5">
           <Button
+            data-test-id="yes"
             variant="gradient"
             color="green"
             onClick={() => handleOpen(1, votedAgendaId)}
           >
             <span>DA</span>
           </Button>
-          <Button variant="gradient" color="blue" onClick={() => handleOpen(2, votedAgendaId)}>
+          <Button
+            data-test-id="restrained"
+            variant="gradient"
+            color="blue"
+            onClick={() => handleOpen(2, votedAgendaId)}
+          >
             <span>Suzdržan</span>
           </Button>
-          <Button variant="gradient" color="red" onClick={() => handleOpen(0, votedAgendaId)}>
+          <Button
+            data-test-id="no"
+            variant="gradient"
+            color="red"
+            onClick={() => handleOpen(0, votedAgendaId)}
+          >
             <span>NE</span>
           </Button>
         </DialogFooter>
