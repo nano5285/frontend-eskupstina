@@ -262,7 +262,7 @@ export default function MainScene(props) {
     setAgendaBeingVoted(null);
     setOpen(false);
     setVoteClose(true);
-    // setGetUpdate((prev) => !prev);
+    setGetUpdate((prev) => !prev);
   };
 
   // Handle vote reset
