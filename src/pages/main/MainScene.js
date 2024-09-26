@@ -105,12 +105,14 @@ export default function MainScene(props) {
   const [agendaBeingVoted, setAgendaBeingVoted] = useState(null);
   const [canStartNewVoting, setCanStartNewVoting] = useState(true);
 
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isFirstRender, setIsFirstRender] = useState(true);
+
   // Refs to hold the latest state values
   const selectedIndexAgendaRef = useRef(selectedIndexAgenda);
   const agendaBeingVotedRef = useRef(agendaBeingVoted);
   const currentSessionRef = useRef(currentSession);
-
-
+  const openRef = useRef(open);
 
   // Update refs when states change
   useEffect(() => {
@@ -121,51 +123,94 @@ export default function MainScene(props) {
     console.log("useEffect: update agendaBeingVotedRef...");
     agendaBeingVotedRef.current = agendaBeingVoted;
   }, [agendaBeingVoted]);
+
   useEffect(() => {
     console.log("useEffect: update currentSessionRef...");
     currentSessionRef.current = currentSession;
   }, [currentSession]);
+  useEffect(() => {
+    console.log("useEffect: update openRef...");
+    openRef.current = open;
+  }, [open]);
 
 
-  const initializeDefaultSession = async () => {
-    console.log("useEffect: initializeDefaultSession...");
+
+
+  const initialize = async () => {
     const sessionYears = await getSessionsByYear();
     setSessionYears(sessionYears.years);
+
+    socket.emit("i_am_in", null, async (currentAgenda, currentVotes) => {
+      console.log("i_am_in response: ", currentAgenda, currentVotes);
+      if (currentAgenda) {
+        const sessionData = await getSessionOrLatest(currentAgenda.session_id);
+        setCurrentSession(sessionData);
+        setCookie("currentSessionId", sessionData._id, 300);
+
+        const agendas = sessionData?.agendas || [];
+        // Separate agendas into preAgendas and dailyAgendas
+        const preAgendas = agendas?.filter(
+          (agenda) => agenda.agenda_type === "pre_agenda"
+        );
+        const dailyAgendas = agendas?.filter(
+          (agenda) => agenda.agenda_type === "daily_agenda"
+        );
+        // Update preAgenda and dailyAgenda states
+        setPreAgenda(preAgendas);
+        setDailyAgenda(dailyAgendas);
+
+        setSessionId(sessionData._id);
+        setAgendaBeingVoted(currentAgenda);
+
+        setSelectedIndexAgenda(currentAgenda);
+        setSelectedAgendaPdf(currentAgenda._id);
+
+        // allow user tto vote if not voted already
+        const existingVoeIndex = currentVotes.findIndex(
+          (vote) => vote.user_id === currentUserId
+        );
+        if (existingVoeIndex === -1) {
+          setOpen(true);
+        }
+        // Mark as initialized so that the second useEffect can conditionally run
+        setIsInitialized(true);
+      }
+    });
   };
+
 
   /**
    * WebSocket Event Handlers
    * These functions handle events received from the WebSocket server.
    */
 
-  // Check voting permission
-  const checkUserVotingPermission = async (
-    currentSessionId,
-    currentAgendaId,
-    currentAgendaVotes
-  ) => {
-    const sessionData = await getSessionOrLatest();
-    console.log('ON CONNECTION...', sessionData);
-    console.log('currentAgendaId: ', currentAgendaId);
-    console.log('sessionId', currentSessionId);
-    sessionData.agendas.forEach((agenda) => {
-      if (agenda?._id === currentAgendaId) {
-        console.log('AGENDA MATCHING...', agenda?._id);
-        const voteState = agenda.vote_state;
-        if (voteState !== 2) {
-          console.log('VOTING ON...');
-          setAgendaBeingVoted(agenda);
-          setSessionId(sessionData._id);
-          const selectedAgenda = selectedIndexAgendaRef.current;
-          if (selectedAgenda?._id !== agenda?._id) {
-            setSelectedIndexAgenda({ _id: agenda._id });
-          }
-          setOpen(true);
-
-        }
-      }
-    });
-  };
+  // // Check voting permission
+  // const checkUserVotingPermission = async (
+  //   currentSessionId,
+  //   currentAgendaId,
+  //   currentAgendaVotes
+  // ) => {
+  //   const sessionData = await getSessionOrLatest(currentSessionId);
+  //   console.log("ON CONNECTION...", sessionData);
+  //   console.log("currentAgendaId: ", currentAgendaId);
+  //   console.log("sessionId", currentSessionId);
+  //   sessionData.agendas.forEach((agenda) => {
+  //     if (agenda?._id === currentAgendaId) {
+  //       console.log("AGENDA MATCHING...", agenda?._id);
+  //       const voteState = agenda.vote_state;
+  //       if (voteState !== 2) {
+  //         console.log("VOTING ON...");
+  //         setAgendaBeingVoted(agenda);
+  //         setSessionId(sessionData._id);
+  //         const selectedAgenda = selectedIndexAgendaRef.current;
+  //         if (selectedAgenda?._id !== agenda?._id) {
+  //           setSelectedIndexAgenda({ _id: agenda._id });
+  //         }
+  //         setOpen(true);
+  //       }
+  //     }
+  //   });
+  // };
 
   // Handle live voting results
   const handleLiveVotingResults = (currentAgendaId, currentAgendaVotes) => {
@@ -185,20 +230,19 @@ export default function MainScene(props) {
     if (selectedAgenda._id && selectedAgenda._id === currentAgendaId) {
       updateVoteCounts(currentAgendaVotes || []);
     }
-
   };
 
   // Handle vote start
-  const handleVoteStart = (agendaInfo, activeSessionId) => {
+  const handleVoteStart = (agendaInfo) => {
     // take user to the session and agenda where voting is on
     setAgendaBeingVoted(agendaInfo);
-    setSessionId(activeSessionId);
+    setSessionId(agendaInfo.session_id);
     const selectedAgenda = selectedIndexAgendaRef.current;
     // take user to the agenda being voted
     console.log("selectedIndexAgenda: ", selectedAgenda);
 
     if (selectedAgenda?._id !== agendaInfo?._id) {
-      setSelectedIndexAgenda({ _id: agendaInfo._id });
+      setSelectedIndexAgenda(agendaInfo);
     }
 
     setOpen(true);
@@ -218,7 +262,7 @@ export default function MainScene(props) {
     setAgendaBeingVoted(null);
     setOpen(false);
     setVoteClose(true);
-    setGetUpdate((prev) => !prev);
+    // setGetUpdate((prev) => !prev);
   };
 
   // Handle vote reset
@@ -250,11 +294,9 @@ export default function MainScene(props) {
    * Sets up the WebSocket event listeners when the component mounts.
    */
   useEffect(() => {
-    initializeDefaultSession();
-    socket.emit('i_am_in', null, (sessionId, currAgenda, votes) => {
-      console.log('response: ', sessionId, currAgenda, votes);
-      checkUserVotingPermission(sessionId, currAgenda, votes);
-    });
+    console.log("\nuseEffect: initialize once...");
+    initialize();
+
     // Attach event listeners
     socket.on("user_disconnected", handleUserDisconnected);
     socket.on("live_voting_results", handleLiveVotingResults);
@@ -263,6 +305,8 @@ export default function MainScene(props) {
     socket.on("vote_reset", handleVoteReset);
     socket.on("voting_saved", handleVotingSaved);
     socket.on("voting_not_saved", handleVotingNotSaved);
+
+    setIsFirstRender(false); // Mark that first render is complete
 
     // Cleanup function to remove event listeners when component unmounts
     return () => {
@@ -277,7 +321,11 @@ export default function MainScene(props) {
   }, []);
 
   useEffect(() => {
-    console.log("useEffect: updates session");
+    // If it's the first render and already initialized, skip this effect
+    if (isFirstRender && isInitialized) {
+      return;
+    }
+    console.log("\nuseEffect: updates session");
 
     const getAgendasAndUsers = async () => {
       const oldSessionId = getCookie("currentSessionId");
@@ -291,7 +339,7 @@ export default function MainScene(props) {
       }
       // console.log("activeSessionId: ", activeSessionId);
       const sessionData = await getSessionOrLatest(activeSessionId);
-      console.log('sessionData: ', sessionData);
+      console.log("sessionData: ", sessionData);
       setCurrentSession(sessionData);
 
       const isSessionChanged = oldSessionId !== sessionId ? true : false;
@@ -313,8 +361,19 @@ export default function MainScene(props) {
       let updatedAgenda;
       const selectedAgenda = selectedIndexAgendaRef.current;
       const votedAgenda = agendaBeingVotedRef.current;
+      const isOpen = openRef.current;
+      console.log("votedAgenda: ", votedAgenda, isOpen);
+
+      if (
+        isSessionChanged &&
+        votedAgenda &&
+        votedAgenda.session_id === sessionData._id &&
+        isOpen
+      ) {
+        setSelectedIndexAgenda(votedAgenda);
+      }
       // Select default selectedIndexAgenda if not already set
-      if (isSessionChanged && !votedAgenda && preAgendas.length > 0) {
+      else if (isSessionChanged && preAgendas.length > 0) {
         setSelectedIndexAgenda(preAgendas[0]);
         setSelectedAgendaPdf(preAgendas[0]._id);
         updatedAgenda = preAgendas[0];
@@ -327,13 +386,16 @@ export default function MainScene(props) {
         setSelectedAgendaPdf(updatedAgenda?._id || "");
       }
 
-      updateVoteCounts(updatedAgenda?.votes);
+      // updateVoteCounts(updatedAgenda?.votes);
 
-      setSessionId(activeSessionId);
+      // Only set sessionId if it's different from the current sessionId
+      if (activeSessionId !== sessionId) {
+        setSessionId(activeSessionId);
+      }
     };
 
     getAgendasAndUsers();
-  }, [getUpdate, sessionId, connected]);
+  }, [getUpdate, sessionId, connected, isFirstRender, isInitialized]);
 
   /**
    * Fetch Agenda by ID
@@ -341,7 +403,7 @@ export default function MainScene(props) {
    */
   useEffect(() => {
     console.log(
-      "useEffect: updating selectedIndexAgenda:",
+      "\nuseEffect: updating selectedIndexAgenda:",
       selectedIndexAgenda._id
     );
     const getAgendaById = async () => {
@@ -390,7 +452,7 @@ export default function MainScene(props) {
    * Retrieves user information and organizes them by party.
    */
   useEffect(() => {
-    console.log("useEffect: fetchUsers...");
+    console.log("\nuseEffect: fetchUsers...");
     const fetchUsers = async () => {
       try {
         const resp = await getUser({ id: currentUserId });
@@ -559,17 +621,9 @@ export default function MainScene(props) {
     // console.log("currentVotes: ", res);
     // only if user has not voted already, it should send its vote
 
-    const existingVoteIndex = res.votes.findIndex((vote) => {
-      // console.log(
-      //   "Have I already voted?",
-      //   vote.user_id,
-      //   typeof vote.user_id,
-      //   currentUserId,
-      //   typeof currentUserId,
-      //   vote.user_id === currentUserId
-      // );
-      return vote.user_id === currentUserId;
-    });
+    const existingVoteIndex = res.votes.findIndex(
+      (vote) => vote.user_id === currentUserId
+    );
 
     console.log("existingVoteIndex: ", existingVoteIndex);
     if (existingVoteIndex !== -1) return;
@@ -605,7 +659,7 @@ export default function MainScene(props) {
     };
     setStartedVote(startVoteData);
     await startVote(startVoteData);
-    socket.emit("vote_start", selectedIndexAgenda, sessionId);
+    socket.emit("vote_start", selectedIndexAgenda);
 
     // admin cannot start a new voting unless the current one is fully saved
     setCanStartNewVoting(false);
@@ -839,6 +893,7 @@ export default function MainScene(props) {
                             {sessionYears[year].length > 0 ? (
                               sessionYears[year]?.map((session) => (
                                 <MenuItem
+                                  key={session._id}
                                   onClick={() => {
                                     sessionChange(session);
                                   }}
