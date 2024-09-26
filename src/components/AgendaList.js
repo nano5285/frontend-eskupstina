@@ -39,7 +39,7 @@ export default function AgendaList({
   openUpdateOrder,
 }) {
   const TABLE_HEAD = [
-    "Position",
+    "Serial No.",
     "Name of agenda",
     "Description (optional)",
     "Type",
@@ -140,6 +140,21 @@ export default function AgendaList({
   //     expiry: "06/2026",
   //   },
   // ];
+
+  function serialNo() {
+      const store = {
+        'pre_agenda': 0,
+        'daily_agenda': 0,
+      };
+
+      function count(type) {
+        return ++store[type];
+        // return store[type];
+      }
+      return { count };
+  }
+  const sNo  = serialNo();
+
   return (
     <Card>
       <CardHeader floated={false} shadow={false} className="rounded-none">
@@ -214,7 +229,7 @@ export default function AgendaList({
                         color="blue-gray"
                         className="font-bold"
                       >
-                        {item.position}
+                        {sNo.count(item?.agenda_type)}
                       </Typography>
                     </div>
                   </td>
