@@ -410,7 +410,7 @@ const createUser = async (props) => {
     });
     return result.data;
   } catch (error) {
-    return error.response;
+    throw error.response;
   }
 };
 
@@ -423,7 +423,7 @@ const updateUser = async (data, id) => {
     });
     return result.data;
   } catch (error) {
-    return error.response;
+    throw error.response;
   }
 };
 export {

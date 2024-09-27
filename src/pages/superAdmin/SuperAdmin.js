@@ -95,7 +95,11 @@ export const SuperAdmin = () => {
         fetchUsers();
         setActive("list");
       } catch (error) {
-        toast("Greška pri kreiranju korisnika");
+        if(error.data) {
+          toast(error.data.error);
+        } else {
+          toast("Greška pri kreiranju korisnika");
+        }
         console.error("Error creating korisnika:", error);
       }
     }
@@ -122,7 +126,11 @@ export const SuperAdmin = () => {
         fetchUsers();
         setActive("list");
       } catch (error) {
-        toast("Greška pri uredjenju korisnika");
+        if(error.data) {
+          toast(`${error.data.error}: ${error.data?.reason}`);
+        } else {
+          toast("Greška pri uredjenju korisnika");
+        }
         console.error("Error editing korisnika:", error);
       }
     }
