@@ -101,7 +101,7 @@ export default function MainScene(props) {
   const [userName] = useState(localStorage.getItem("userName") || "");
   const [currentUserId] = useState(localStorage.getItem("userId") || "");
   const [role] = useState(localStorage.getItem("role") || "");
-
+  console.log('role is ', role)
   const [agendaBeingVoted, setAgendaBeingVoted] = useState(null);
   const [canStartNewVoting, setCanStartNewVoting] = useState(true);
 
@@ -1109,23 +1109,27 @@ export default function MainScene(props) {
                     );
                   })}
                 </div>
-                {(role === "admin") && <div className="w-full h-[120px]"></div>}
-                {(role === "admin") && (
-                  <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between ">
-                    <Button
-                      className=" w-[120px] bg-[green] text-[12px]"
-                      onClick={sendVoteStart}
-                    >
-                      Otvori glasanje
-                    </Button>
-                    <Button
-                      className=" w-[120px] bg-[#f00] text-[12px]"
-                      onClick={sendVoteReset}
-                    >
-                      Resetiraj glasanje
-                    </Button>
-                  </div>
-                )}
+                {role === "admin" && (
+  <div className="w-full h-[120px]"></div>
+)}
+
+{role === "admin" && (
+  <div className="absolute bottom-0 flex flex-row gap-10 p-[10px] justify-between">
+    <Button
+      className="w-[120px] bg-[green] text-[12px]"
+      onClick={sendVoteStart}
+    >
+      Otvori glasanje
+    </Button>
+    <Button
+      className="w-[120px] bg-[#f00] text-[12px]"
+      onClick={sendVoteReset}
+    >
+      Resetiraj glasanje
+    </Button>
+  </div>
+)}
+
                 <CloseAlert
                   open={adminOpen}
                   handleClose={sendVoteClose}
