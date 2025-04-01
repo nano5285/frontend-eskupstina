@@ -55,4 +55,4 @@ jobs:
           app-name: 'e-skupstina-frontend'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_70C6154E222442E38A8C8367537DA056 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C836F83639FF4622BBFAF08670D0BE37 }}
