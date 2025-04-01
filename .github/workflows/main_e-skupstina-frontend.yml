@@ -23,15 +23,6 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
-        run: |
-          export CI=false
-          rm -rf node_modules
-          rm -r package-lock.json
-          npm install
-          npm install -g create-react-app@latest
-          npm run build --if-present
-
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
@@ -64,4 +55,4 @@ jobs:
           app-name: 'e-skupstina-frontend'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_28DB86417A6F4F19936D29A8C335D08F }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_73B5746A134A4865B6F563A5FFE4D286 }}
