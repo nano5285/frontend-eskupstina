@@ -450,7 +450,7 @@ export default function MainScene(props) {
 
   const handleLogout = () => {
     navigate("/");
-    logout();
+    // logout();
     localStorage.clear();
   };
 
