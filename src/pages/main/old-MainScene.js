@@ -983,7 +983,7 @@ export default function MainScene(props) {
               {selectedAgendaPdf && (
                 <PdfViewer
                   url={
-                    "https://backend-eskupstina.azurewebsites.net/api/pdf-blob?agenda=" +
+                    "https://e-skupstina-backend.azurewebsites.net/api/pdf-blob?agenda=" +
                     selectedAgendaPdf
                   }
                   onError={(error) => {
